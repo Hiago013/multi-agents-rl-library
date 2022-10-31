@@ -3,10 +3,10 @@ import numpy as np
 from brain import brain
 from GridWorld import GridWorld
 
-env = GridWorld(10, 10, -1, 5, 10, 100, 1)
-env.set_pick_up([0])
-env.set_drop_off([22])
-env.set_obstacles([])
+env = GridWorld(5, 5, -1, 5, 10, 100, 1)
+env.set_pick_up([1, 2, 3])
+env.set_drop_off([35, 39])
+env.set_obstacles([0, 4, 5, 9, 10, 14, 15, 19, 20, 24, 36, 38, 41, 43])
 env.possible_states()
 env.load_available_action()
 env.load_available_flag_dynamic()
@@ -15,6 +15,7 @@ agent.filter_q_table(env.state_action)
 num_epochs = 10000
 score = np.zeros(num_epochs)
 sum_score = 0
+
 for i in range(num_epochs):
   #if i == 5000:
   #  env.set_obstacles([1, 6, 8, 9, 18, 21, 23])

@@ -11,8 +11,10 @@ class GridWorld:
     self.actions = np.array([0, 1, 2, 3, 4])
     self.num_flags = 3
     self.flag_dynamic = 16
+    self.floors = 2
 
     self.state, self.action, self.reward, self.state_, self.done = (0, 0, 0, 0, 0)
+    self.elevator = {21, 23, 26, 28}
 
     self.agents = dict()
     for agent in range(num_agents):
@@ -28,7 +30,7 @@ class GridWorld:
     self.drop_off = drop_off
   
   def possible_states(self):
-    all_grid_position = self.row * self.col
+    all_grid_position = self.row * self.col * self.floors # floors é o numero de andares
     all_pick_up = len(self.pick_up)
     all_drop_off = len(self.drop_off)
     all_flag = self.num_flags
@@ -87,7 +89,7 @@ class GridWorld:
     return grid_position_
   
   def on_map(self, grid_position):
-    if grid_position < 0 or grid_position >= self.row * self.col:
+    if grid_position < 0 or grid_position >= self.row * self.col * self.floors:
       return False
     return True
   
@@ -117,6 +119,11 @@ class GridWorld:
     #if self.on_dynamic(self.action):
     #  return True
     return False
+
+  def on_elevator(self, grid_position):
+    if grid_position in self.elevator:
+      return True
+    return False
   
   def att_flag(self, grid_position):
     if self.current_flag == 0 and grid_position == self.pick_up[self.current_pick_up]:
@@ -128,6 +135,17 @@ class GridWorld:
   def att_dynamic(self, state):
     self.current_dynamic = np.random.choice(self.state_dynamic_flag[state])
     return self.att_state(self.grid_position_)
+  
+  def att_elevator(self, grid_position):
+    if grid_position == 21:
+      return grid_position + self.col
+    elif grid_position == 23:
+      return grid_position + self.col
+    elif grid_position == 26:
+      return grid_position - self.col
+    elif grid_position == 28:
+      return grid_position - self.col
+    return grid_position
 
     
   def step(self, action):
@@ -135,6 +153,7 @@ class GridWorld:
     self.grid_position_ = self.move(action=action)
     self.reward = self.get_reward(self.grid_position, self.grid_position_)
     self.done = self.on_done(self.grid_position_)
+    self.grid_position_ = self.att_elevator(self.grid_position_)
     self.att_flag(self.grid_position_)
     self.state_ = self.att_state(self.grid_position_)
     self.grid_position = self.grid_position_
@@ -172,6 +191,11 @@ class GridWorld:
       reward += self.kd
     if self.on_pick_up(state_):
       reward += self.kp
+    if self.on_elevator(state_):
+      if (state_ == 23 or state_ == 21) and self.current_flag == 1:
+        reward += self.kp
+      if (state_ == 28 or state_ == 26) and self.current_flag == 2:
+        reward += self.kp
     if self.on_goal(state_):
       reward += self.kg
     return reward
@@ -212,19 +236,36 @@ class GridWorld:
       data = np.array(np.where(state == self.all_states)).squeeze()
       grid_position = data[-1]
       aux = []
-      if ((grid_position + self.col) < self.col*self.row) and \
-      (grid_position + self.col) not in self.obstacles:
-        aux.append(0)
-      if ((grid_position - self.col) >= 0) and \
-      (grid_position - self.col) not in self.obstacles:
-        aux.append(1)
+
+      if (grid_position < self.col*self.row):
+        if ((grid_position + self.col) < self.col*self.row) and \
+          (grid_position + self.col) not in self.obstacles:
+          aux.append(0)
+        
+        if ((grid_position - self.col) >= 0) and \
+         (grid_position - self.col) not in self.obstacles:
+          aux.append(1)
+
+      else:
+        if ((grid_position + self.col) < self.col*self.row*self.floors) and \
+         (grid_position + self.col) not in self.obstacles:
+          aux.append(0)
+
+        if ((grid_position - self.col) >= self.row*self.col) and \
+         (grid_position - self.col) not in self.obstacles:
+          aux.append(1)
+          
+
       if ((grid_position % self.col != self.col - 1)) and \
-      (grid_position + 1) not in self.obstacles:
-        aux.append(2)
+         (grid_position + 1) not in self.obstacles:
+          aux.append(2)
+
       if ((grid_position % self.col != 0)) and \
-      (grid_position - 1) not in self.obstacles:
-        aux.append(3)
+         (grid_position - 1) not in self.obstacles:
+          aux.append(3)
+
       aux.append(4)
+
       self.state_action[state] = np.array(aux)
   
   def available_action(self, state):
