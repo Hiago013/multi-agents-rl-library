@@ -12,7 +12,7 @@ env.load_available_action()
 env.load_available_flag_dynamic()
 agent = brain(.1, .99, .1, len(env.action_space()), len(env.state_space()))
 agent.filter_q_table(env.state_action)
-num_epochs = 10000
+num_epochs = 2000
 score = np.zeros(num_epochs)
 sum_score = 0
 

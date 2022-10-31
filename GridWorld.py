@@ -135,25 +135,12 @@ class GridWorld:
   def att_dynamic(self, state):
     self.current_dynamic = np.random.choice(self.state_dynamic_flag[state])
     return self.att_state(self.grid_position_)
-  
-  def att_elevator(self, grid_position):
-    if grid_position == 21:
-      return grid_position + self.col
-    elif grid_position == 23:
-      return grid_position + self.col
-    elif grid_position == 26:
-      return grid_position - self.col
-    elif grid_position == 28:
-      return grid_position - self.col
-    return grid_position
-
     
   def step(self, action):
     self.action = action
     self.grid_position_ = self.move(action=action)
     self.reward = self.get_reward(self.grid_position, self.grid_position_)
     self.done = self.on_done(self.grid_position_)
-    self.grid_position_ = self.att_elevator(self.grid_position_)
     self.att_flag(self.grid_position_)
     self.state_ = self.att_state(self.grid_position_)
     self.grid_position = self.grid_position_
@@ -191,11 +178,6 @@ class GridWorld:
       reward += self.kd
     if self.on_pick_up(state_):
       reward += self.kp
-    if self.on_elevator(state_):
-      if (state_ == 23 or state_ == 21) and self.current_flag == 1:
-        reward += self.kp
-      if (state_ == 28 or state_ == 26) and self.current_flag == 2:
-        reward += self.kp
     if self.on_goal(state_):
       reward += self.kg
     return reward
@@ -238,7 +220,7 @@ class GridWorld:
       aux = []
 
       if (grid_position < self.col*self.row):
-        if ((grid_position + self.col) < self.col*self.row) and \
+        if (((grid_position + self.col) < self.col*self.row) or grid_position == 21 or grid_position == 23) and \
           (grid_position + self.col) not in self.obstacles:
           aux.append(0)
         
@@ -251,7 +233,7 @@ class GridWorld:
          (grid_position + self.col) not in self.obstacles:
           aux.append(0)
 
-        if ((grid_position - self.col) >= self.row*self.col) and \
+        if (((grid_position - self.col) >= self.row*self.col) or grid_position == 26 or grid_position == 28) and \
          (grid_position - self.col) not in self.obstacles:
           aux.append(1)
           
