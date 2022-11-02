@@ -1,4 +1,5 @@
 import numpy as np
+from curriculum import curriculum
 class GridWorld:
   def __init__(self, row, col, kl, kp, kd, kg, num_agents):
     self.row = row
@@ -12,6 +13,7 @@ class GridWorld:
     self.num_flags = 3
     self.flag_dynamic = 16
     self.floors = 2
+    self.stage = 5
 
     self.state, self.action, self.reward, self.state_, self.done = (0, 0, 0, 0, 0)
     self.elevator = {21, 23, 26, 28}
@@ -28,6 +30,9 @@ class GridWorld:
   
   def set_drop_off(self, drop_off : np.array):
     self.drop_off = drop_off
+  
+  def set_stage(self, stage : int):
+    self.stage = stage
   
   def possible_states(self):
     all_grid_position = self.row * self.col * self.floors # floors é o numero de andares
@@ -49,6 +54,7 @@ class GridWorld:
 
     self.all_states = self.all_states.reshape(shape)
     self.initial_states()
+    self.crr = curriculum(self.all_states, self.obstacles, self.elevator, self.col, self.row)
     
   def initial_states(self):
     shape = self.all_states.shape
@@ -65,7 +71,11 @@ class GridWorld:
     self.start_state = states.flatten()
 
   def reset(self):
-    self.state = np.random.choice(self.start_state)
+    if self.stage == 5:
+        #self.state = np.random.choice(self.start_state)
+        self.state = np.random.choice(self.crr.get_stage(self.stage))
+    else:
+      self.state = np.random.choice(self.crr.get_stage(self.stage))
     self.current_dynamic, self.current_flag, self.current_drop_off, self.current_pick_up, \
     self.grid_position = np.array(np.where(self.state == self.all_states)).squeeze()
     return self.state
@@ -99,9 +109,30 @@ class GridWorld:
     return False
   
   def on_goal(self, grid_position):
+    if self.stage == 0:
+      if self.current_flag == 1: #and grid_position == self.pick_up[self.current_pick_up]:
+        return True
+      return False
+    
+    elif self.stage == 1:
+      if self.current_flag == 1 and grid_position in [21, 23]:
+        return True
+      return False
+    
+    elif self.stage == 2:
+      if self.current_flag == 2:# and grid_position == self.drop_off[self.current_drop_off]:
+        return True
+      return False
+    
+    elif self.stage == 3:
+      if self.current_flag == 2 and grid_position in {26, 28}:
+        return True
+      return False
+    
     if self.current_flag == 2 and grid_position == self.pick_up[self.current_pick_up]:
-      return True
+        return True
     return False
+
   
   def on_drop_off(self, grid_position):
     if self.current_flag == 1 and grid_position == self.drop_off[self.current_drop_off]:

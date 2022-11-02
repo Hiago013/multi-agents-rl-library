@@ -15,7 +15,7 @@ class brain():
                     self.q_table[state][action] = -1000
 
     def choose_action(self, state, episode, maxEpisode, actions):
-        if np.random.uniform() < self.epsilonFunction(episode, maxEpisode):
+        if np.random.uniform() < self.epsilon:#self.epsilonFunction(episode, maxEpisode):
             return np.random.choice(actions)
         best_action = np.argmax(self.q_table[state,:])
         return best_action
