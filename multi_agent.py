@@ -86,6 +86,7 @@ if __name__ == '__main__':
 
     ma = multi_agent(agent, env, 2)
     ma.reset()
+    print(ma.data[0][-1])
     done = [False, False]
     while False in done:
         a, b, c, done = ma.step()
