@@ -72,8 +72,8 @@ class GridWorld:
 
   def reset(self):
     if self.stage == 5:
-        #self.state = np.random.choice(self.start_state)
-        self.state = np.random.choice(self.crr.get_stage(self.stage))
+        self.state = np.random.choice(self.start_state)
+        #self.state = np.random.choice(self.crr.get_stage(self.stage))
     else:
       self.state = np.random.choice(self.crr.get_stage(self.stage))
     self.current_dynamic, self.current_flag, self.current_drop_off, self.current_pick_up, \
@@ -199,7 +199,20 @@ class GridWorld:
     if action == 3 and binary_flag_dynamic[3] == '1':
       return True
     return False
+  
+  def set_state(self, observation):
+    self.current_dynamic, self.current_flag, \
+    self.current_drop_off, self.current_pick_up, self.grid_position = self.get_states(observation)
 
+  def get_position(self):
+    return self.grid_position
+  
+  def get_states(self, observation):
+    return np.array(np.where(observation == self.all_states)).squeeze()
+  
+  def what_position(self, state):
+    data = np.array(np.where(state == self.all_states)).squeeze()
+    return data[-1]
 
   def get_reward(self, state, state_):
     reward = self.kl

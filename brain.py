@@ -15,7 +15,7 @@ class brain():
                     self.q_table[state][action] = -1000
 
     def choose_action(self, state, episode, maxEpisode, actions):
-        if np.random.uniform() < self.epsilon:#self.epsilonFunction(episode, maxEpisode):
+        if np.random.uniform() < self.epsilonFunction(episode, maxEpisode):
             return np.random.choice(actions)
         best_action = np.argmax(self.q_table[state,:])
         return best_action
@@ -32,3 +32,6 @@ class brain():
         
     def load(self, file_name):
         self.q_table = np.loadtxt(file_name)
+    
+    def get_q_table(self):
+        return self.q_table
