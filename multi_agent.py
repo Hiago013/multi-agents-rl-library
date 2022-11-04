@@ -2,6 +2,7 @@ from stack import Stack
 from GridWorld import GridWorld
 from brain import brain
 import numpy as np
+from matplotlib import pyplot as plt
 
 class multi_agent():
     def __init__(self, agent : brain, grid_world : GridWorld, n_agents : int):
@@ -11,6 +12,17 @@ class multi_agent():
         self.q_table = agent.get_q_table()
         self.reward = [0 for n_agnt in range(n_agents)]
         self.done = [False for n_agnt in range(n_agents)]
+
+    def set_q_table(self, q_table:np.array):
+        self.q_table = q_table
+    
+    def get_q_table(self):
+        return self.q_table
+    
+    def save(self, filename):
+        if not '.txt' in filename:
+            filename += '.txt'
+        np.savetxt(filename, self.q_table)
 
     def reset(self):
         self.observations = [self.env.reset() for i in range(self.n_agents)]
@@ -49,7 +61,31 @@ class multi_agent():
         self.env.grid_position = self.data[n_agent][1:]
         return self.env.att_state(self.data[n_agent][-1])
 
+    def step_agents(self, episode, maxEpisode):
+        # print(self.data)
+        actions = [act for act in range(self.n_agents)]
+        for i in range(self.n_agents):
+            observation = self._att_flag(i, self.observations[i])
+            self.env.set_state(observation)
+            available_actions = env.available_action(observation)
+            action = self.main_agent.choose_action(observation, episode, maxEpisode, available_actions)
+            actions[i] = action
+            #print(action)
+            observation_, reward, done = self.env.step(action)
 
+            # learn
+            self.main_agent.learn(observation, action, reward, observation_, done)
+
+            states = self.env.get_states(observation_)
+            self.data[i] = [self.observations[i]] + list(states)
+            self.observations[i] = self._att_flag(i, observation_)
+            self.reward[i] = reward
+            self.done[i] = done
+        
+        info = {'grid_position': [self.env.what_position(a) for a in self.observations],
+                'action': actions}
+
+        return self.observations, self.reward, self.done, info
 
     
     def step(self):
@@ -81,15 +117,42 @@ if __name__ == '__main__':
     env.load_available_flag_dynamic()
     agent = brain(.1, .99, .1, len(env.action_space()), len(env.state_space()))
     agent.filter_q_table(env.state_action)
-    agent.load('qtable.txt')
+    agent.load('qtable2.txt')
     env.set_stage(5)
 
-    ma = multi_agent(agent, env, 2)
-    ma.reset()
-    print(ma.data[0][-1])
-    done = [False, False]
-    while False in done:
-        a, b, c, done = ma.step()
-        print(b)
+    n_agents = 2
+    ma = multi_agent(agent, env, n_agents)
+    n_epoch = 1000
+    reward_sum = np.zeros((n_agents, n_epoch))
+    print(reward_sum)
+    print(reward_sum[0])
+    for j in range(n_epoch):
+        observations = ma.reset()
+        done = [False, False]
+        while False in done:
+            observation_, reward, done, info = ma.step_agents(j, n_epoch)
+            reward_sum[0][j] +=  reward[0]
+            reward_sum[1][j] +=  reward[1]
+        
+            #for i in range(1):
+                #print(observations)
+                #observation = ma._att_flag(i, observations[i])
+                #env.set_state(observation)
+                #available_actions = env.available_action(observation)
+                #action = agent.choose_action(observation, i, 2, available_actions)
+                #observation_, reward, done = env.step(action)
+                #agent.learn(observation, action, reward, observation_, done)
+                #observations[i] = observation_
+                #dones[i] = done
+    #done = [False, False]
+    #while False in done:
+    #    a, b, c, done = ma.step()
+    #    print(b)
+    ma.save('qtable2')
+
+    plt.plot(reward_sum[0])
+    plt.plot(reward_sum[1])
+    
+    plt.show()
 
     

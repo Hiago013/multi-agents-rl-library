@@ -72,7 +72,8 @@ class GridWorld:
 
   def reset(self):
     if self.stage == 5:
-        self.state = np.random.choice(self.start_state)
+        self.state = np.random.choice(self.crr.get_stage(0))
+        #self.state = np.random.choice(self.start_state)
         #self.state = np.random.choice(self.crr.get_stage(self.stage))
     else:
       self.state = np.random.choice(self.crr.get_stage(self.stage))
@@ -110,7 +111,8 @@ class GridWorld:
   
   def on_goal(self, grid_position):
     if self.stage == 0:
-      if self.current_flag == 1: #and grid_position == self.pick_up[self.current_pick_up]:
+      if self.current_flag == 1 or \
+         self.current_flag == 0 and grid_position == self.pick_up[self.current_pick_up] :
         return True
       return False
     
@@ -129,7 +131,7 @@ class GridWorld:
         return True
       return False
     
-    if self.current_flag == 2 and grid_position == self.pick_up[self.current_pick_up]:
+    if self.current_flag == 2 and grid_position in self.pick_up:
         return True
     return False
 
@@ -224,6 +226,8 @@ class GridWorld:
       reward += self.kp
     if self.on_goal(state_):
       reward += self.kg
+     # if self.action == 4:
+     #   reward += self.kg // 2
     return reward
   
   def decimal2binary(self, decimal):

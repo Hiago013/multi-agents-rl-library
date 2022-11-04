@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from brain import brain
 from GridWorld import GridWorld
+from multi_agent import multi_agent
 
 env = GridWorld(5, 5, -1, 5, 10, 100, 1)
 env.set_pick_up([1, 2, 3])
@@ -17,7 +18,7 @@ agent.load('qtable.txt')
 num_epochs = 24000
 score = np.zeros(num_epochs)
 sum_score = 0
-
+ma = multi_agent(agent, env, 1)
 for crr in range(0,6):
   env.set_stage(crr)
   init = time()
@@ -29,8 +30,6 @@ for crr in range(0,6):
     env.current_dynamic = 0
     observation = env.att_state(env.grid_position)
     done = False
-
-
     while not done:
             available_actions = env.available_action(observation)
             action = agent.choose_action(observation, i, num_epochs, available_actions)
