@@ -17,7 +17,7 @@ def cartesian2state(cartesian_point):
     return 5 * x + y
 #####
 
-env = GridWorld(5, 5, -1, 5, 10, 100, 1)
+env = GridWorld(5, 5, -1, 5, 10, 150, 1)
 env.set_pick_up([1, 2, 3])
 env.set_drop_off([35, 39])
 env.set_obstacles([0, 4, 5, 9, 10, 14, 15, 19, 20, 24, 36, 38, 41, 43])
@@ -27,7 +27,7 @@ env.load_available_flag_dynamic()
 agent = brain(.1, .99, .1, len(env.action_space()), len(env.state_space()))
 agent.filter_q_table(env.state_action)
 agent.load('qtable2.txt')
-#env.set_stage(0)
+env.set_stage(5)
 
 obstacle = env.obstacles
 points_obstacles = [np.array((state2cartesian(state))) for state in obstacle]
@@ -43,6 +43,8 @@ pick_up_point = [np.array((state2cartesian(state))) for state in pick_up]
 n_agents = 2
 ma = multi_agent(agent, env, n_agents)
 observations = ma.reset()
+ma.observations = [811, 751]
+observations = [811, 751]
 
 agent_positions = [ma.data[i][-1] for i in range(n_agents)]
 agent_point = [np.array(state2cartesian(agent_position)) for agent_position in agent_positions]
@@ -81,7 +83,7 @@ while True:
 
 
     observations, agent_position, reward, done = ma.step()
-    print(reward)
+    print(observations, reward)
 
     '''
     action = agent.choose_best_action(observation)

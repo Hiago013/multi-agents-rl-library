@@ -219,15 +219,15 @@ class GridWorld:
   def get_reward(self, state, state_):
     reward = self.kl
     if self.on_dynamic(self.action):
-      reward -= 100
+      reward -= self.kg
     if self.on_drop_off(state_):
       reward += self.kd
     if self.on_pick_up(state_):
       reward += self.kp
     if self.on_goal(state_):
       reward += self.kg
-     # if self.action == 4:
-     #   reward += self.kg // 2
+      if self.action == 4:
+        reward += self.kg // 4
     return reward
   
   def decimal2binary(self, decimal):

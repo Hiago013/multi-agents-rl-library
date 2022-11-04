@@ -108,7 +108,7 @@ class multi_agent():
     
 
 if __name__ == '__main__':
-    env = GridWorld(5, 5, -1, 5, 10, 100, 1)
+    env = GridWorld(5, 5, -1, 5, 10, 150, 1)
     env.set_pick_up([1, 2, 3])
     env.set_drop_off([35, 39])
     env.set_obstacles([0, 4, 5, 9, 10, 14, 15, 19, 20, 24, 36, 38, 41, 43])
@@ -120,9 +120,9 @@ if __name__ == '__main__':
     agent.load('qtable2.txt')
     env.set_stage(5)
 
-    n_agents = 2
+    n_agents = 3
     ma = multi_agent(agent, env, n_agents)
-    n_epoch = 1000
+    n_epoch = 2000
     reward_sum = np.zeros((n_agents, n_epoch))
     print(reward_sum)
     print(reward_sum[0])
@@ -130,9 +130,9 @@ if __name__ == '__main__':
         observations = ma.reset()
         done = [False, False]
         while False in done:
-            observation_, reward, done, info = ma.step_agents(j, n_epoch)
+            observation_, reward, done, info = ma.step_agents(j, n_epoch//2)
             reward_sum[0][j] +=  reward[0]
-            reward_sum[1][j] +=  reward[1]
+            #reward_sum[1][j] +=  reward[1]
         
             #for i in range(1):
                 #print(observations)
@@ -151,7 +151,7 @@ if __name__ == '__main__':
     ma.save('qtable2')
 
     plt.plot(reward_sum[0])
-    plt.plot(reward_sum[1])
+   # plt.plot(reward_sum[1])
     
     plt.show()
 
