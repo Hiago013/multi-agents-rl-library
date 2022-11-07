@@ -5,7 +5,7 @@ class brain():
         self.gamma = gamma
         self.alpha = alpha
         self.actions = np.arange(n_actions)
-        self.q_table = np.zeros((n_states, n_actions))
+        self.q_table = -100 * np.ones((n_states, n_actions))
         self.epsilonFunction = lambda episode, maxEp: (max(1 - 1/maxEp * episode, .1))
 
     def filter_q_table(self, state_action):

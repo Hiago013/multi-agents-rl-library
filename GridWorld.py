@@ -1,5 +1,6 @@
 import numpy as np
 from curriculum import curriculum
+from stack import Stack
 class GridWorld:
   def __init__(self, row, col, kl, kp, kd, kg, num_agents):
     self.row = row
@@ -149,8 +150,8 @@ class GridWorld:
   def on_done(self, grid_position):
     if self.on_goal(grid_position):
       return True
-    #if self.on_dynamic(self.action):
-    #  return True
+    if self.on_dynamic(self.action):
+      return True
     return False
 
   def on_elevator(self, grid_position):
@@ -166,6 +167,8 @@ class GridWorld:
       self.current_flag = 2
   
   def att_dynamic(self, state):
+    if state >= self.col * self.row * 2:
+      state = self.what_position(state)
     self.current_dynamic = np.random.choice(self.state_dynamic_flag[state])
     return self.att_state(self.grid_position_)
     
@@ -219,15 +222,26 @@ class GridWorld:
   def get_reward(self, state, state_):
     reward = self.kl
     if self.on_dynamic(self.action):
-      reward -= self.kg
+      reward -= self.kg//2
+      if self.current_flag == 2:
+        reward -= self.kg // 2
+
     if self.on_drop_off(state_):
       reward += self.kd
+
     if self.on_pick_up(state_):
       reward += self.kp
+
     if self.on_goal(state_):
       reward += self.kg
       if self.action == 4:
         reward += self.kg // 4
+    
+    if self.action == 0 and self.current_flag == 2:
+      reward -= 2
+    
+    if self.action == 1 and self.current_flag == 1:
+      reward -= 2
     return reward
   
   def decimal2binary(self, decimal):
@@ -241,7 +255,8 @@ class GridWorld:
   
   def load_available_flag_dynamic(self):
     self.state_dynamic_flag = dict()
-    for state in self.all_states.flatten():
+    states = np.delete(self.all_states, self.obstacles, axis=4)
+    for state in states.flatten():
       possible_actions = self.available_action(state)
       possible_actions = possible_actions[:-1]
       aux_possibles = []
@@ -262,7 +277,8 @@ class GridWorld:
   
   def load_available_action(self):
     self.state_action = dict()
-    for state in self.all_states.flatten():
+    states = np.delete(self.all_states, self.obstacles, axis=4)
+    for state in states.flatten():
       data = np.array(np.where(state == self.all_states)).squeeze()
       grid_position = data[-1]
       aux = []
@@ -299,4 +315,80 @@ class GridWorld:
       self.state_action[state] = np.array(aux)
   
   def available_action(self, state):
+    state = self.what_position(state)
     return self.state_action[state]
+
+  def available_action2(self, state):
+    state = self.what_position(state)
+    return self.state_action[state]
+
+  def load_available_flag_dynamic2(self):
+    self.state_dynamic_flag = dict()
+    states = np.arange(self.col * self.row * 2)
+    for state in states.flatten():
+      possible_actions = self.available_action2(state)
+      possible_actions = possible_actions[:-1]
+      aux_possibles = []
+      for action in self.actions[:-1]:
+        if action in possible_actions:
+          aux_possibles.append(2)
+        else:
+          aux_possibles.append(1)
+      flags_dynamic = []
+      for down in range(aux_possibles[0]):
+        for up in range(aux_possibles[1]):
+          for right in range(aux_possibles[2]):
+            for left in range(aux_possibles[3]):
+              decimal = self.binary2decimal(str(down) + str(up) + str(right) + str(left))
+              flags_dynamic.append(decimal)
+      self.state_dynamic_flag[state] = np.array(flags_dynamic)
+
+  def load_available_action2(self):
+    self.state_action = dict()
+    states = np.arange(self.row * self.col * 2)
+    for state in states:
+      grid_position = state
+      aux = []
+
+      if (grid_position < self.col*self.row):
+        if (((grid_position + self.col) < self.col*self.row) or grid_position == 21 or grid_position == 23) and \
+          (grid_position + self.col) not in self.obstacles:
+          aux.append(0)
+        
+        if ((grid_position - self.col) >= 0) and \
+         (grid_position - self.col) not in self.obstacles:
+          aux.append(1)
+
+      else:
+        if ((grid_position + self.col) < self.col*self.row*self.floors) and \
+         (grid_position + self.col) not in self.obstacles:
+          aux.append(0)
+
+        if (((grid_position - self.col) >= self.row*self.col) or grid_position == 26 or grid_position == 28) and \
+         (grid_position - self.col) not in self.obstacles:
+          aux.append(1)
+          
+
+      if ((grid_position % self.col != self.col - 1)) and \
+         (grid_position + 1) not in self.obstacles:
+          aux.append(2)
+
+      if ((grid_position % self.col != 0)) and \
+         (grid_position - 1) not in self.obstacles:
+          aux.append(3)
+
+      aux.append(4)
+
+      self.state_action[state] = np.array(aux)
+  
+  def generate_demand(self, n):
+    stack_books = Stack()
+    for i in range(n):
+      pick_up = np.random.choice(np.arange(len(self.pick_up)))
+      drop_off = np.random.choice(np.arange(len(self.drop_off)))
+      stack_books.push([drop_off, pick_up])
+    return stack_books
+
+      
+
+    

@@ -18,7 +18,7 @@ class Stack:
             self.top = self.top.next
             self._size = self._size - 1
             return node.data
-        raise IndexError("The stack is empty")
+        #raise IndexError("The stack is empty")
 
     def peek(self):
         # retorna o topo sem remover

@@ -12,6 +12,7 @@ class multi_agent():
         self.q_table = agent.get_q_table()
         self.reward = [0 for n_agnt in range(n_agents)]
         self.done = [False for n_agnt in range(n_agents)]
+        self.stack_stay = [Stack() for i in range(n_agents)]
 
     def set_q_table(self, q_table:np.array):
         self.q_table = q_table
@@ -23,6 +24,11 @@ class multi_agent():
         if not '.txt' in filename:
             filename += '.txt'
         np.savetxt(filename, self.q_table)
+    
+    def load(self, filename):
+        if not '.txt' in filename:
+            filename += '.txt'
+        self.set_q_table(np.loadtxt(filename))
 
     def reset(self):
         self.observations = [self.env.reset() for i in range(self.n_agents)]
@@ -67,14 +73,32 @@ class multi_agent():
         for i in range(self.n_agents):
             observation = self._att_flag(i, self.observations[i])
             self.env.set_state(observation)
-            available_actions = env.available_action(observation)
+            available_actions = self.env.available_action(observation)
             action = self.main_agent.choose_action(observation, episode, maxEpisode, available_actions)
             actions[i] = action
-            #print(action)
+
+            #if action == 4:
+            #    self.stack_stay[i].push(1)
+            #else:
+            #    self.stack_stay[i].pop()
+
             observation_, reward, done = self.env.step(action)
+
+            #if len(self.stack_stay[i]) >= 4:
+            #    reward -= 5
 
             # learn
             self.main_agent.learn(observation, action, reward, observation_, done)
+
+            dynamic, flag, drop, pick, gp = self.env.get_states(observation_)
+            if flag == 2 and gp < self.env.col * self.env.col:
+                if len(self.book) > 0:
+                    temporary_state = self.book.pop()
+                    self.env.current_flag = 0
+                    self.env.current_drop_off = temporary_state[0]
+                    self.env.current_pick_up =temporary_state[1]
+                    observation_ = self.env.att_state(gp)
+
 
             states = self.env.get_states(observation_)
             self.data[i] = [self.observations[i]] + list(states)
@@ -96,6 +120,16 @@ class multi_agent():
             action = self.main_agent.choose_best_action(observation)
             #print(action)
             observation_, reward, done = self.env.step(action)
+
+            dynamic, flag, drop, pick, gp = self.env.get_states(observation_)
+            if flag == 2 and gp < self.env.col * self.env.col:
+                if len(self.book) > 0:
+                    temporary_state = self.book.pop()
+                    self.env.current_flag = 0
+                    self.env.current_drop_off = temporary_state[0]
+                    self.env.current_pick_up = temporary_state[1]
+                    observation_ = self.env.att_state(gp)
+
             states = self.env.get_states(observation_)
             self.data[i] = [self.observations[i]] + list(states)
             self.observations[i] = self._att_flag(i, observation_)
@@ -104,52 +138,39 @@ class multi_agent():
         
        # print(self.data)
         return self.observations, [self.env.what_position(a) for a in self.observations], self.reward, self.done
+    
+    def books(self, n):
+        self.book = self.env.generate_demand(n)
 
     
 
 if __name__ == '__main__':
-    env = GridWorld(5, 5, -1, 5, 10, 150, 1)
+    env = GridWorld(5, 5, -1, 150, 150, 150, 1)
     env.set_pick_up([1, 2, 3])
     env.set_drop_off([35, 39])
     env.set_obstacles([0, 4, 5, 9, 10, 14, 15, 19, 20, 24, 36, 38, 41, 43])
     env.possible_states()
-    env.load_available_action()
-    env.load_available_flag_dynamic()
+    env.load_available_action2()
+    env.load_available_flag_dynamic2()
     agent = brain(.1, .99, .1, len(env.action_space()), len(env.state_space()))
     agent.filter_q_table(env.state_action)
-    agent.load('qtable2.txt')
+    agent.load('qtablelib.txt')
     env.set_stage(5)
 
-    n_agents = 3
+    n_agents = 2
     ma = multi_agent(agent, env, n_agents)
-    n_epoch = 2000
+    n_epoch = 1000
     reward_sum = np.zeros((n_agents, n_epoch))
     print(reward_sum)
     print(reward_sum[0])
     for j in range(n_epoch):
         observations = ma.reset()
+        ma.books(3)
         done = [False, False]
-        while False in done:
+        while not (True in done):
             observation_, reward, done, info = ma.step_agents(j, n_epoch//2)
             reward_sum[0][j] +=  reward[0]
-            #reward_sum[1][j] +=  reward[1]
-        
-            #for i in range(1):
-                #print(observations)
-                #observation = ma._att_flag(i, observations[i])
-                #env.set_state(observation)
-                #available_actions = env.available_action(observation)
-                #action = agent.choose_action(observation, i, 2, available_actions)
-                #observation_, reward, done = env.step(action)
-                #agent.learn(observation, action, reward, observation_, done)
-                #observations[i] = observation_
-                #dones[i] = done
-    #done = [False, False]
-    #while False in done:
-    #    a, b, c, done = ma.step()
-    #    print(b)
-    ma.save('qtable2')
-
+    ma.save('qtablelib')
     plt.plot(reward_sum[0])
    # plt.plot(reward_sum[1])
     
