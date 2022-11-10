@@ -7,20 +7,25 @@ from multi_agent import multi_agent
 
 
 def state2cartesian(state):
-    x, y = divmod(state, 5)
+    x, y = divmod(state, 6)
     return x * 50, y * 50
 
 def cartesian2state(cartesian_point):
     y, x = cartesian_point
     x = x // 50
     y = y // 50
-    return 5 * x + y
+    return 6 * x + y
 #####
 
 env = GridWorld(5, 5, -1, 5, 10, 150, 1)
 env.set_pick_up([1, 2, 3])
 env.set_drop_off([35, 39])
-env.set_obstacles([0, 4, 5, 9, 10, 14, 15, 19, 20, 24, 36, 38, 41, 43])
+env.set_obstacles([0, 4, 5, 9, 10, 14, 15, 19, 20, 24, 36, 38, 41, 43, 24])
+
+env = GridWorld(6, 6, -1, 5, 10, 150, 1)
+env.set_pick_up([1, 2, 3, 4])
+env.set_drop_off([55, 61, 58, 64])
+env.set_obstacles([13, 16, 19, 22, 54, 56, 57, 59, 60, 62, 63, 65])
 env.possible_states()
 print('ok')
 env.load_available_action2()
@@ -29,7 +34,7 @@ env.load_available_flag_dynamic2()
 print('ok')
 agent = brain(.1, .99, .1, len(env.action_space()), len(env.state_space()))
 agent.filter_q_table(env.state_action)
-agent.load('qtablelib.txt')
+agent.load('biblioteca66.txt')
 env.set_stage(5)
 
 obstacle = env.obstacles
@@ -45,10 +50,12 @@ pick_up_point = [np.array((state2cartesian(state))) for state in pick_up]
 #observation = env.reset()
 n_agents = 2
 ma = multi_agent(agent, env, n_agents)
-print(ma.get_q_table()[4258])
+color_agents = [(np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)) for i in range(n_agents)]
+agent_position = [1, 2]
 
-for w in range(10):
-    ma.books(4)
+
+for w in range(1):
+    ma.books(10)
     print(ma.book)
     observations = ma.reset()
     #ma.observations = [811, 751]
@@ -66,13 +73,14 @@ for w in range(10):
     #pick_point = np.array(state2cartesian(crrnt_pckp_stt))
     #drop_point = np.array(state2cartesian(crrnt_drpff_stt))
 
-    img = np.zeros((250, 500, 3), dtype='uint8')
+    img = np.zeros((300, 600, 3), dtype='uint8')
     done = [False]
     while True:
+        
 
-        cv2.imshow('a', img)
+        cv2.imshow('GridWorld', img)
         cv2.waitKey(1)
-        img = np.zeros((250, 500, 3), dtype='uint8')
+        img = np.zeros((300, 600, 3), dtype='uint8')
         # Desenhar elementos estaticos
         for point in points_obstacles:
             cv2.rectangle(img, point, point + 50, (0, 0, 255), 5)
@@ -87,12 +95,20 @@ for w in range(10):
         
         ##########
 
-        if not False in done:
+        if True in done:
             break
 
-
+        if len(set(agent_position)) < len(agent_position):
+            while True:
+                pass
         observations, agent_position, reward, done = ma.step()
-        print(observations, reward, [env.get_states(t)[0] for t in observations])
+        print(' ')
+        print(reward, agent_position)
+        print(' ')
+        #print(agent_position)
+        
+       # print(observations, reward, [env.get_states(t)[0] for t in observations])
+       # print(env.get_states(observations[0]))
 
         '''
         action = agent.choose_best_action(observation)
@@ -110,14 +126,16 @@ for w in range(10):
         #############
 
         # Takes step after fixed time
-        t_end = time.time() + 0.5
+        t_end = time.time() + .5
         while time.time() < t_end:
             continue
         
         for idx, n_agnt in enumerate(agent_position):
             agent_state = n_agnt
             agent_point = np.array(state2cartesian(agent_state))
-            cv2.rectangle(img, agent_point, agent_point + 50, [255, int(idx/2 * 255), idx*100], 3)
+            cv2.rectangle(img, agent_point, agent_point + 50, color_agents[idx], 3)
+
+        
 
 
         
