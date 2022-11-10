@@ -145,32 +145,40 @@ class multi_agent():
     
 
 if __name__ == '__main__':
-    env = GridWorld(5, 5, -1, 150, 150, 150, 1)
-    env.set_pick_up([1, 2, 3])
-    env.set_drop_off([35, 39])
-    env.set_obstacles([0, 4, 5, 9, 10, 14, 15, 19, 20, 24, 36, 38, 41, 43])
+    #env = GridWorld(5, 5, -1, 150, 150, 150, 1)
+    #env.set_pick_up([1, 2, 3])
+    #env.set_drop_off([35, 39])
+    #env.set_obstacles([0, 4, 5, 9, 10, 14, 15, 19, 20, 24, 36, 38, 41, 43])
+    env = GridWorld(13, 13, -1, 150, 150, 150, 1)
+    env.set_pick_up([3, 4, 5, 6, 7, 8, 9])
+    env.set_drop_off([208, 210, 212, 214, 216, 218, 220, 286, 288, 290, 292, 294, 296, 298])
+    env.set_obstacles([0, 12, 13, 25, 26, 38, 39, 51, 52, 64, 65, 77, 78, 90, 91, 103, 104,\
+                    116, 117,129,130,142,143,155,156, 168, 169, 170, 171, 172, 174, 175,\
+                    175, 176, 178, 179, 180, 181, 196, 198, 200, 202, 204, 206, 209, 211,\
+                    213, 215, 217, 219, 222, 224, 226, 228, 230, 232, 274, 276, 278, 280,\
+                    282, 284, 287, 289, 291, 293, 295, 297, 300, 302, 304, 306, 308, 310])
     env.possible_states()
     env.load_available_action2()
     env.load_available_flag_dynamic2()
     agent = brain(.1, .99, .1, len(env.action_space()), len(env.state_space()))
-    agent.filter_q_table(env.state_action)
-    agent.load('qtablelib.txt')
+    #agent.filter_q_table(env.state_action)
+    #agent.load('qtablelib.txt')
     env.set_stage(5)
 
-    n_agents = 2
+    n_agents = 1
     ma = multi_agent(agent, env, n_agents)
     n_epoch = 1000
     reward_sum = np.zeros((n_agents, n_epoch))
-    print(reward_sum)
-    print(reward_sum[0])
+    #print(reward_sum)
+    #print(reward_sum[0])
+    print('Começou o treinamento:')
     for j in range(n_epoch):
         observations = ma.reset()
-        ma.books(3)
         done = [False, False]
         while not (True in done):
             observation_, reward, done, info = ma.step_agents(j, n_epoch//2)
             reward_sum[0][j] +=  reward[0]
-    ma.save('qtablelib')
+    ma.save('libreal')
     plt.plot(reward_sum[0])
    # plt.plot(reward_sum[1])
     
