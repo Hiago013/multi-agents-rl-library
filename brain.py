@@ -17,11 +17,20 @@ class brain():
     def choose_action(self, state, episode, maxEpisode, actions):
         if np.random.uniform() < self.epsilonFunction(episode, maxEpisode):
             return np.random.choice(actions)
-        best_action = np.argmax(self.q_table[state,:])
+        best_action = self.choose_best_action(state, actions)#np.argmax(self.q_table[state,:])
         return best_action
 
-    def choose_best_action(self, state):
-        best_action = np.argmax(self.q_table[state,:])
+    def choose_best_action(self, state, available_action = []):
+        if len(available_action) == 0:
+            available_action = self.actions
+        best_action = available_action[0]
+        max_q = self.q_table[state, best_action]
+        for action in available_action:
+            if self.q_table[state, action] > max_q:
+                best_action = action
+                max_q = self.q_table[state, action]
+        #print(best_action)
+        #best_action = np.argmax(self.q_table[state,:])
         return best_action
   
     def learn(self, state, action, reward, state_, done):

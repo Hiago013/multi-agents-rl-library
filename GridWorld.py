@@ -228,7 +228,7 @@ class GridWorld:
   def get_reward(self, state, state_):
     reward = self.kl
     if self.on_dynamic(self.action):
-      reward -= self.kg//2
+      reward -= self.kg
       if self.current_flag == 2:
         reward -= self.kg // 2
 
@@ -257,7 +257,7 @@ class GridWorld:
       xa, ya = divmod(position_agent, self.row)
 
       distance = np.abs(xg - xa) + np.abs(yg - ya)
-      reward -= 2 * distance / (2 * self.row + self.row)
+      reward -= 2*distance / (2 * self.row + self.row)
     elif self.current_flag == 1:
       position_goal = self.drop_off[self.current_drop_off]
       xg, yg = divmod(position_goal, self.row)
@@ -266,7 +266,7 @@ class GridWorld:
       xa, ya = divmod(position_agent, self.row)
 
       distance = np.abs(xg - xa) + np.abs(yg - ya)
-      reward -= 2 * distance / (2 * self.row + self.row)
+      reward -= 2*distance / (2 * self.row + self.row)
 
     if state == state_:
       reward -= 1
@@ -341,7 +341,7 @@ class GridWorld:
          (grid_position - 1) not in self.obstacles:
           aux.append(3)
 
-      #aux.append(4)
+      aux.append(4)
 
       self.state_action[state] = np.array(aux)
   
@@ -408,7 +408,7 @@ class GridWorld:
          (grid_position - 1) not in self.obstacles:
           aux.append(3)
 
-     # aux.append(4)
+      aux.append(4)
 
       self.state_action[state] = np.array(aux)
   
