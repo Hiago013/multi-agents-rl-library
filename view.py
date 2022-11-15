@@ -7,36 +7,32 @@ from multi_agent import multi_agent
 
 
 def state2cartesian(state):
-    x, y = divmod(state, 6)
+    x, y = divmod(state, 9)
     return x * 50, y * 50
 
 def cartesian2state(cartesian_point):
-    y, x = cartesian_point
+    x, y = cartesian_point
     x = x // 50
     y = y // 50
-    return 6 * x + y
+    return 9 * x + y
 #####
 
-env = GridWorld(5, 5, -1, 5, 10, 150, 1)
-env.set_pick_up([1, 2, 3])
-env.set_drop_off([35, 39])
-env.set_obstacles([0, 4, 5, 9, 10, 14, 15, 19, 20, 24, 36, 38, 41, 43, 24])
-
-env = GridWorld(6, 6, -1, 50, 100, 150, 1)
-env.set_pick_up([1, 2, 3, 4])
-env.set_drop_off([55, 61, 58, 64])
-env.set_obstacles([13, 16, 19, 22, 54, 56, 57, 59, 60, 62, 63, 65])
+env = GridWorld(9, 9, -1, 50, 100,150,1)
+env.set_pick_up([2, 3, 4, 5, 6])
+env.set_drop_off([18, 25, 27, 30, 34, 39, 43, 48, 110, 113, 119, 122, 133, 142, 145])
+env.set_obstacles([19, 20, 22, 23, 26, 28, 29, 31, 32, 35, 37, 38, 40, 41, 44, \
+                    46, 47, 49, 50, 53, 90, 91, 93, 94, 97, 98, 99, 100, 102, \
+                    103, 106, 107, 108, 109, 111, 112, 115, 116, 117, 118, 120, \
+                    121,124, 125, 149, 150, 151, 152, 153, 154, 155, 156, 158, 159,\
+                    160, 161])
 env.possible_states()
-print('ok')
 env.load_available_action2()
-print('ok')
 env.load_available_flag_dynamic2()
-print('ok')
 agent = brain(.1, .99, .1, len(env.action_space()), len(env.state_space()))
 agent.filter_q_table(env.state_action)
-agent.load('biblioteca66.txt')
-env.set_stage(5)
-
+agent.load('qtable.txt')
+env.set_stage(1)
+env.set_progressive_curriculum(0)
 obstacle = env.obstacles
 points_obstacles = [np.array((state2cartesian(state))) for state in obstacle]
 
@@ -48,22 +44,22 @@ pick_up_point = [np.array((state2cartesian(state))) for state in pick_up]
 
 
 #observation = env.reset()
-n_agents = 4
+n_agents = 1
 ma = multi_agent(agent, env, n_agents)
 color_agents = [(np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)) for i in range(n_agents)]
 agent_position = [1, 2]
 
-print(agent.get_q_table()[28334])
-print(agent.get_q_table()[30833])
-print(env.get_states(30833))
+print(agent.get_q_table()[10537])
+print(agent.get_q_table()[10537])
+print(env.get_states(10537))
 
-#while True:
-#    pass
 
-for w in range(1):
-    ma.books(100)
+for w in range(50):
+    ma.books(0)
     print(ma.book)
     observations = ma.reset()
+    current_pick_up = ma.data[0][-2]
+    pick_point = np.array(state2cartesian(pick_up[current_pick_up]))
     #ma.observations = [811, 751]
     #observations = [811, 751]
 
@@ -71,36 +67,36 @@ for w in range(1):
     agent_point = [np.array(state2cartesian(agent_position)) for agent_position in agent_positions]
 
 
-    #crrnt_pckp_stt = pick_up[env.current_pick_up]
-    #crrnt_drpff_stt = drop_off[env.current_drop_off]
+    crrnt_pckp_stt = pick_up[env.current_pick_up]
+    crrnt_drpff_stt = drop_off[env.current_drop_off]
 
     #agent_position = env.grid_position
     #agent_point = np.array(state2cartesian(agent_position))
     #pick_point = np.array(state2cartesian(crrnt_pckp_stt))
-    #drop_point = np.array(state2cartesian(crrnt_drpff_stt))
+    drop_point = np.array(state2cartesian(crrnt_drpff_stt))
 
 
     
 
-    img = np.zeros((300, 600, 3), dtype='uint8')
+    img = np.zeros((450, 900, 3), dtype='uint8')
     done = [False]
     while True:
         
 
         cv2.imshow('GridWorld', img)
         cv2.waitKey(1)
-        img = np.zeros((300, 600, 3), dtype='uint8')
+        img = np.zeros((450, 900, 3), dtype='uint8')
         # Desenhar elementos estaticos
         for point in points_obstacles:
             cv2.rectangle(img, point, point + 50, (0, 0, 255), 5)
         
         for point in drop_off_points :
             cv2.rectangle(img, point, point + 50, (0, 255, 255), 5)
-        #cv2.rectangle(img, drop_point, drop_point + 50, (0, 255, 255), -1)
+        cv2.rectangle(img, drop_point, drop_point + 50, (0, 255, 255), -1)
         
         for point in pick_up_point:
             cv2.rectangle(img, point, point + 50, (0, 255, 0), 5)
-        #cv2.rectangle(img, pick_point, pick_point + 50, (0, 255, 0), -1)
+        cv2.rectangle(img, pick_point, pick_point + 50, (0, 255, 0), -1)
         
         ##########
 

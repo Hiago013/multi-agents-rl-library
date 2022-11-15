@@ -19,6 +19,9 @@ class brain():
             return np.random.choice(actions)
         best_action = self.choose_best_action(state, actions)#np.argmax(self.q_table[state,:])
         return best_action
+    
+    def set_qvalue(self, state, values):
+        self.q_table[state] = values
 
     def choose_best_action(self, state, available_action = []):
         if len(available_action) == 0:

@@ -1,6 +1,7 @@
 import numpy as np
 from curriculum import curriculum
 from stack import Stack
+from new_curriculum import new_curriculum
 class GridWorld:
   def __init__(self, row, col, kl, kp, kd, kg, num_agents):
     self.row = row
@@ -15,12 +16,14 @@ class GridWorld:
     self.num_flags = 3
     self.flag_dynamic = 16
     self.floors = 2
-    self.stage = 5
+    self.stage = 3
+    
 
     self.state, self.action, self.reward, self.state_, self.done = (0, 0, 0, 0, 0)
-    self.elevator = [31, 34, 37, 40]
+    self.elevator = [74, 78, 83, 87]
 
     self.agents = dict()
+    self.stack_states = Stack()
     for agent in range(num_agents):
       self.agents[agent] = [] # lista com state, action, reward, next_state, done
   
@@ -35,6 +38,9 @@ class GridWorld:
   
   def set_stage(self, stage : int):
     self.stage = stage
+  
+  def set_progressive_curriculum(self, value:int):
+    self.progressive = value
   
   def possible_states(self):
     all_grid_position = self.row * self.col * self.floors # floors é o numero de andares
@@ -57,6 +63,7 @@ class GridWorld:
     self.all_states = self.all_states.reshape(shape)
     self.initial_states()
     self.crr = curriculum(self.all_states, self.obstacles, self.elevator, self.col, self.row)
+    self.ncrr = new_curriculum(self.all_states, self.obstacles, self.elevator, self.col, self.row, self.pick_up, self.drop_off)
     
   def initial_states(self):
     shape = self.all_states.shape
@@ -73,27 +80,36 @@ class GridWorld:
     self.start_state = states.flatten()
 
   def reset(self):
-    if self.stage == 5:
-        self.state = np.random.choice(self.crr.get_stage(0))
-        #self.state = np.random.choice(self.start_state)
-        #self.state = np.random.choice(self.crr.get_stage(self.stage))
+    #if len(self.stack_states) == 0:
+    #  for item in self.ncrr.get_stage(self.stage)[self.progressive]:
+    #    self.stack_states.push(item)
+    if self.stage >= 3:
+        self.state = np.random.choice(self.ncrr.get_stage(3))
     else:
-      self.state = np.random.choice(self.crr.get_stage(self.stage))
+        self.state = np.random.choice(self.ncrr.get_stage(self.stage)[self.progressive]) # falta arrumar esse
     self.current_dynamic, self.current_flag, self.current_drop_off, self.current_pick_up, \
     self.grid_position = np.array(np.where(self.state == self.all_states)).squeeze()
     return self.state
+    # Antigo Curriculum
+    #if self.stage == 5:
+    #    self.state = np.random.choice(self.crr.get_stage(0))
+    #else:
+    #  self.state = np.random.choice(self.crr.get_stage(self.stage))
+    #self.current_dynamic, self.current_flag, self.current_drop_off, self.current_pick_up, \
+    #self.grid_position = np.array(np.where(self.state == self.all_states)).squeeze()
+    #return self.state
 
   def move(self, action):
     grid_position_ = self.grid_position
-    if action == 0:
+    if action == 0: #baixo
         grid_position_ += self.col
-    elif action == 1:
+    elif action == 1: # cima
         grid_position_ -= self.col
-    elif action == 2 and grid_position_ % self.col != self.col - 1:
+    elif action == 2 and grid_position_ % self.col != self.col - 1: #direita
         grid_position_ += 1
-    elif action == 3 and grid_position_ % self.col != 0:
+    elif action == 3 and grid_position_ % self.col != 0: # esquerda
         grid_position_ -= 1
-    elif action == 4:
+    elif action == 4: # parado
         pass
     if not self.on_map(grid_position_):
       return self.grid_position
@@ -114,33 +130,53 @@ class GridWorld:
   def on_goal(self, grid_position):
     if self.stage == 0:
       if self.current_flag == 1 or \
-         self.current_flag == 0 and grid_position == self.pick_up[self.current_pick_up] :
-        self.kg = self.kp
-        return True
+         (self.current_flag == 0 and grid_position == self.pick_up[self.current_pick_up]):
+         self.kg = self.kp
+         return True
       return False
     
-    elif self.stage == 1:
-      if grid_position in self.elevator[0:2]:
-        self.kg = self.kp
-        return True
-      return False
-    
-    elif self.stage == 2:
-      if self.current_flag == 2:# and grid_position == self.drop_off[self.current_drop_off]:
+    if self.stage == 1:
+      if self.current_flag == 2 or grid_position == self.drop_off[self.current_drop_off]:
         self.kg = self.kd
         return True
       return False
-    
-    elif self.stage == 3:
-      if self.current_flag == 2 and grid_position in self.elevator[2:]:
-        self.kg = self.kd
-        return True
-      return False
-    
+
     if self.current_flag == 2 and grid_position in self.pick_up:
-        self.kg = self.kgback
-        return True
+      self.kg = self.kgback
+      return True
     return False
+
+
+    # Curriculum antigo
+    #if self.stage == 0:
+    #  if self.current_flag == 1 or \
+    #     self.current_flag == 0 and grid_position == self.pick_up[self.current_pick_up] :
+    #    self.kg = self.kp
+    #    return True
+    #  return False
+   # 
+   # elif self.stage == 1:
+   #   if grid_position in self.elevator[0:2]:
+   #     self.kg = self.kp
+   #     return True
+   #   return False
+   # 
+   # elif self.stage == 2:
+   #   if self.current_flag == 2:# and grid_position == self.drop_off[self.current_drop_off]:
+   #     self.kg = self.kd
+   #     return True
+   #   return False
+   # 
+   # elif self.stage == 3:
+   #   if self.current_flag == 2 and grid_position in self.elevator[2:]:
+   #     self.kg = self.kd
+   #     return True
+   #   return False
+   # 
+   # if self.current_flag == 2 and grid_position in self.pick_up:
+   #     self.kg = self.kgback
+   #     return True
+   # return False
 
   
   def on_drop_off(self, grid_position):
@@ -221,6 +257,12 @@ class GridWorld:
   def get_states(self, observation):
     return np.array(np.where(observation == self.all_states)).squeeze()
   
+  def get_possibles_grid_positions(self):
+    return np.delete(np.arange(self.col * self.row * 2), self.obstacles)
+  
+  def get_observation(self, states : tuple):
+    return self.all_states[states]
+  
   def what_position(self, state):
     dynamic, flag, drop, pick, gp = np.array(np.where(state == self.all_states)).squeeze()
     return gp
@@ -244,12 +286,19 @@ class GridWorld:
         reward += self.kg // 4
         
     if self.action == 4:
-      reward -= 5
+      reward -= 6
     
-    if self.action == 0 and (self.current_flag == 2 or self.current_flag == 0):
-      reward -= 2
     
-    if self.current_flag == 0:
+   # if self.action == 2 and self.current_flag == 0:
+   #   reward -= 1
+    
+   # if self.action == 3 and self.current_flag == 2:
+   #   reward -= 1
+    
+    #if self.action == 0 and (self.current_flag == 2 or self.current_flag == 0):
+    #  reward -= 1
+    
+    if self.current_flag == 0 :
       position_goal = self.pick_up[self.current_pick_up]
       xg, yg = divmod(position_goal, self.row)
       
@@ -257,7 +306,8 @@ class GridWorld:
       xa, ya = divmod(position_agent, self.row)
 
       distance = np.abs(xg - xa) + np.abs(yg - ya)
-      reward -= 2*distance / (2 * self.row + self.row)
+      reward -= distance**2 / (2 * self.row + self.row - 2)**2
+
     elif self.current_flag == 1:
       position_goal = self.drop_off[self.current_drop_off]
       xg, yg = divmod(position_goal, self.row)
@@ -266,13 +316,36 @@ class GridWorld:
       xa, ya = divmod(position_agent, self.row)
 
       distance = np.abs(xg - xa) + np.abs(yg - ya)
-      reward -= 2*distance / (2 * self.row + self.row)
+      reward -= distance**2 / (2 * self.row + self.row - 2)**2
+    
+    else:
+      position_agent = self.what_position(state_)
+      min_dist = 100
 
-    if state == state_:
-      reward -= 1
+      for pick_up in self.pick_up:
+        position_goal = pick_up
+        xg, yg = divmod(position_goal, self.row)
+        position_agent = self.what_position(state_)
+        xa, ya = divmod(position_agent, self.row)
+        distance = np.abs(xg - xa) + np.abs(yg - ya)
+        if distance < min_dist:
+          min_dist = distance
+        distance = min_dist
 
-    if self.action == 1 and self.current_flag == 1:
-      reward -= 2
+
+      #position_goal = self.pick_up[2]
+      #xg, yg = divmod(position_goal, self.row)
+      
+      #position_agent = self.what_position(state_)
+      #xa, ya = divmod(position_agent, self.row)
+
+      #distance = np.abs(xg - xa) + np.abs(yg - ya)
+      reward -= distance**2 / (2 * self.row + self.row - 2)**2
+
+    
+
+    #if self.action == 1 and self.current_flag == 1:
+    #  reward -= 2
     return reward
   
   def decimal2binary(self, decimal):
@@ -315,7 +388,7 @@ class GridWorld:
       aux = []
 
       if (grid_position < self.col*self.row):
-        if (((grid_position + self.col) < self.col*self.row) or grid_position == 31 or grid_position == 34) and \
+        if (((grid_position + self.col) < self.col*self.row) or grid_position == 74 or grid_position == 78) and \
           (grid_position + self.col) not in self.obstacles:
           aux.append(0)
         
@@ -328,7 +401,7 @@ class GridWorld:
          (grid_position + self.col) not in self.obstacles:
           aux.append(0)
 
-        if (((grid_position - self.col) >= self.row*self.col) or grid_position == 37 or grid_position == 40) and \
+        if (((grid_position - self.col) >= self.row*self.col) or grid_position == 83 or grid_position == 87) and \
          (grid_position - self.col) not in self.obstacles:
           aux.append(1)
           
@@ -382,7 +455,7 @@ class GridWorld:
       aux = []
 
       if (grid_position < self.col*self.row):
-        if (((grid_position + self.col) < self.col*self.row) or grid_position == 31 or grid_position == 34) and \
+        if (((grid_position + self.col) < self.col*self.row) or grid_position == 74 or grid_position == 78) and \
           (grid_position + self.col) not in self.obstacles:
           aux.append(0)
         
@@ -395,7 +468,7 @@ class GridWorld:
          (grid_position + self.col) not in self.obstacles:
           aux.append(0)
 
-        if (((grid_position - self.col) >= self.row*self.col) or grid_position == 37 or grid_position == 40) and \
+        if (((grid_position - self.col) >= self.row*self.col) or grid_position == 83 or grid_position == 87) and \
          (grid_position - self.col) not in self.obstacles:
           aux.append(1)
           
