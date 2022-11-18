@@ -32,7 +32,7 @@ agent = brain(.1, .99, .1, len(env.action_space()), len(env.state_space()))
 agent.filter_q_table(env.state_action)
 agent.load('qtable.txt')
 env.set_stage(1)
-env.set_progressive_curriculum(0)
+env.set_progressive_curriculum(5)
 obstacle = env.obstacles
 points_obstacles = [np.array((state2cartesian(state))) for state in obstacle]
 
@@ -49,9 +49,9 @@ ma = multi_agent(agent, env, n_agents)
 color_agents = [(np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)) for i in range(n_agents)]
 agent_position = [1, 2]
 
-print(agent.get_q_table()[10537])
-print(agent.get_q_table()[10537])
-print(env.get_states(10537))
+print(agent.get_q_table()[24669])
+print(agent.get_q_table()[24669])
+print(env.get_states(24669))
 
 
 for w in range(50):
@@ -111,7 +111,7 @@ for w in range(50):
                 pass
         observations, agent_position, reward, done = ma.step2()
         print(' ')
-        print(reward, observations, agent_position)
+        print(reward, observations, agent_position, agent.get_q_table()[observations[0]])
         print(' ')
         print('---')
         print(env.get_states(observations[0]))
@@ -140,7 +140,7 @@ for w in range(50):
         #############
 
         # Takes step after fixed time
-        t_end = time.time()
+        t_end = time.time() +1
         while time.time() < t_end:
             continue
         

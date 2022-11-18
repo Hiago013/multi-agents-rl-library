@@ -256,7 +256,9 @@ class multi_agent():
 
 def transfer_learning(env : GridWorld, agent:brain, tl = 1):
     if tl == 1:
-        agent.load('qtable.txt')
+        agent.load('qtable.txt') 
+        print('oi')
+        # Transferir para chegar proximamento locais de pickup para todos dropoff
         #Primeiro Estagio
         train_states = dict()
         aux = []
@@ -267,15 +269,18 @@ def transfer_learning(env : GridWorld, agent:brain, tl = 1):
                         aux.append(env.get_observation((0, 0, drop, pick, gp)))
             train_states[env.get_observation((0, 0, 0, 2, gp))] = aux
             aux = []
+        print('oi2')
         #Transferencia do conhecimento do primeiro estagio
         transfer_learning = transfer()
         for key in train_states.keys():
             for state in train_states[key]:
                 agent = transfer_learning.from_to(agent, state = key, state_ = state) 
-            agent.save('qtable.txt')
+        agent.save('qtable.txt')
+        print('fim')
     
     elif tl == 2:
         agent.load('qtable.txt')
+        # Chegar corretamento no pick para qualquer drop
         # Primeiro Estagio
         train_states = dict()
         aux = []
@@ -291,18 +296,36 @@ def transfer_learning(env : GridWorld, agent:brain, tl = 1):
             for state in train_states[key]:
                 agent = transfer_learning.from_to(agent, state = key, state_ = state) 
         agent.save('qtable.txt')
+    elif tl == 3:
+        agent.load('qtable.txt')
+        # Chegar corretamento no pick para qualquer drop
+        # Primeiro Estagio
+        train_states = dict()
+        aux = []
+        for gp in env.get_possibles_grid_positions():
+            for pick in range(len(env.pick_up)):
+                for drop in range(len(env.drop_off)):
+                    aux.append(env.get_observation((0, 2, drop, pick, gp)))
+            train_states[env.get_observation((0, 0, 0, 2, gp))] = aux
+            aux = []
+        # Transferencia do conhecimento do primeiro estagio
+        transfer_learning = transfer()
+        for key in train_states.keys():
+            for state in train_states[key]:
+                agent = transfer_learning.from_to(agent, state = key, state_ = state) 
+        agent.save('qtable.txt')
 
                    
 
 if __name__ == '__main__':
-    env = GridWorld(9, 9, -1, 50, 100, 150,1)
+    env = GridWorld(9, 9, -5, 50, 100, 150,1)
     env.set_pick_up([2, 3, 4, 5, 6])
     env.set_drop_off([18, 25, 27, 30, 34, 39, 43, 48, 110, 113, 119, 122, 133, 142, 145])
     env.set_obstacles([19, 20, 22, 23, 26, 28, 29, 31, 32, 35, 37, 38, 40, 41, 44, \
                        46, 47, 49, 50, 53, 90, 91, 93, 94, 97, 98, 99, 100, 102, \
                        103, 106, 107, 108, 109, 111, 112, 115, 116, 117, 118, 120, \
                        121,124, 125, 149, 150, 151, 152, 153, 154, 155, 156, 158, 159,\
-                       160, 161])
+                       160, 161, 74, 78])
     env.possible_states()
     env.load_available_action2()
     env.load_available_flag_dynamic2()
@@ -317,19 +340,19 @@ if __name__ == '__main__':
                             'retrain': [400, 400, 400],
                             'n_agents': 1,
                             'n_books': 0,
-                            'max_ep': lambda x: x // 2},
-                        1: {'epoch': [200, 400, 200, 200, 200, 200, 200, 200],
-                            'epsilon': .1,
+                            'max_ep': lambda x: x},
+                        1: {'epoch': [400, 400, 200, 400, 200, 200, 200, 400],
+                            'epsilon': .3,
                             'n_agents': 1,
                             'n_books': 0,
-                            'max_ep': lambda x: x // 2}}
+                            'max_ep': lambda x: x}}
 
     #num_epoch_first_stage = [(50, .1), (50, .1), (200, .1), (200, .1), (200, .1), (200, .1)]
     #num_epoch_first_stage = [(300, .1), (300, .1), (300, .1)]#, (50, .1), (50, .1), (50, .1), (50, .1)]
     num_epoch_second_stage = [(150, .1), (150, .1), (150, .1), (150, .1), (150, .1), (270, .1), (120, .1), (220, .1)]
-    for all_estagios in range(9, 10):
+    for all_estagios in range(12, 16):
         print('\n', all_estagios)
-        env.set_stage(5)
+        env.set_stage(0)
         if all_estagios < 9:
             env.set_stage(0)
             if all_estagios < 6:
@@ -342,7 +365,7 @@ if __name__ == '__main__':
                 env.set_progressive_curriculum(all_estagios)
             
             elif all_estagios == 6:
-                transfer_learning(env, agent)
+                transfer_learning(env, agent, 1)
                 ma.load('qtable')
                 n_epoch = control_trainning[0]['retrain'][all_estagios - 6]
                 n_books = control_trainning[0]['n_books']
@@ -365,8 +388,8 @@ if __name__ == '__main__':
         elif all_estagios >= 9:
             env.set_stage(1)
             if all_estagios == 9:
-               # transfer_learning(env, agent, 2)
-               # ma.load('qtable')
+                transfer_learning(env, agent, 2)
+                ma.load('qtable')
                 n_epoch = control_trainning[1]['epoch'][all_estagios - 9]
                 n_books = control_trainning[1]['n_books']
                 n_agents = control_trainning[1]['n_agents']
@@ -391,12 +414,6 @@ if __name__ == '__main__':
     #         n_epoch, agent.epsilon = num_epoch_second_stage[all_estagios - 6]
     #         max_ep =  1# n_epoch #// 2
     #         env.set_progressive_curriculum(all_estagios - 6)
-            
-            
-
-
-
-
     #        # n_agents = 1
     #        # n_books = 0
     #        # n_epoch, agent.epsilon = num_epoch_first_stage[all_estagios]
@@ -442,43 +459,43 @@ if __name__ == '__main__':
         
         for epoch in range(n_epoch):
             observations = ma.reset()
-            current_pick_up = ma.data[0][-2]
-            pick_point = np.array(state2cartesian(pick_up[current_pick_up]))
-            current_drop_off = ma.data[0][-3]
-            drop_point = np.array(state2cartesian(drop_off[current_drop_off]))
+            # current_pick_up = ma.data[0][-2]
+            # pick_point = np.array(state2cartesian(pick_up[current_pick_up]))
+            # current_drop_off = ma.data[0][-3]
+            # drop_point = np.array(state2cartesian(drop_off[current_drop_off]))
             ma.books(n_books)
-            img = np.zeros((450, 900, 3), dtype='uint8')
+           # img = np.zeros((450, 900, 3), dtype='uint8')
             done = [False, False]
             while not (True in done):
-                cv2.imshow('Grid_World', img)
-                cv2.waitKey(1)
-                img = np.zeros((450, 900, 3), dtype='uint8')
-          ##      # Desenhar elementos estaticos
-                for point in points_obstacles:
-                    cv2.rectangle(img, point, point + 50, (0, 0, 255), 5)
-         # #   
-                for point in drop_off_points :
-                    cv2.rectangle(img, point, point + 50, (0, 255, 255), 5)
-                cv2.rectangle(img, drop_point, drop_point + 50, (0, 255, 255), -1)
-        #  #   
-                for point in pick_up_point:
-                    cv2.rectangle(img, point, point + 50, (0, 255, 0), 5)
-                cv2.rectangle(img, pick_point, pick_point + 50, (0, 255, 0), -1)
-                observation_, reward, done, info = ma.step_agents2(epoch + 1, max_ep)
-               # print(reward)
-                agent_position = info['grid_position']
-                reward_sum[0][epoch] +=  reward[0]
-            # view()
+        #         cv2.imshow('Grid_World', img)
+        #         cv2.waitKey(1)
+        #         img = np.zeros((450, 900, 3), dtype='uint8')
+        #   ##      # Desenhar elementos estaticos
+        #         for point in points_obstacles:
+        #             cv2.rectangle(img, point, point + 50, (0, 0, 255), 5)
+        #  # #   
+        #         for point in drop_off_points :
+        #             cv2.rectangle(img, point, point + 50, (0, 255, 255), 5)
+        #         cv2.rectangle(img, drop_point, drop_point + 50, (0, 255, 255), -1)
+        # #  #   
+        #         for point in pick_up_point:
+        #             cv2.rectangle(img, point, point + 50, (0, 255, 0), 5)
+        #         cv2.rectangle(img, pick_point, pick_point + 50, (0, 255, 0), -1)
+                 observation_, reward, done, info = ma.step_agents2(epoch + 1, max_ep)
+        #        # print(reward)
+            #     agent_position = info['grid_position']
+            #     reward_sum[0][epoch] +=  reward[0]
+            # # view()
 
-            # Takes step after fixed time
-                t_end = time.time()
-                while time.time() < t_end:
-                    continue
-           # #    
-                for idx, n_agnt in enumerate(agent_position):
-                    agent_state = n_agnt
-                    agent_point = np.array(state2cartesian(agent_state))
-                    cv2.rectangle(img, agent_point, agent_point + 50, [255, int(idx/2 * 255), idx*100], 3)
+        #     # Takes step after fixed time
+        #         t_end = time.time()
+        #         while time.time() < t_end:
+        #             continue
+        #    # #    
+        #         for idx, n_agnt in enumerate(agent_position):
+        #             agent_state = n_agnt
+        #             agent_point = np.array(state2cartesian(agent_state))
+        #             cv2.rectangle(img, agent_point, agent_point + 50, [255, int(idx/2 * 255), idx*100], 3)
 
                 
             print(epoch, end='\r')

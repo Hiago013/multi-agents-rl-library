@@ -134,12 +134,15 @@ class GridWorld:
          self.kg = self.kp
          return True
       return False
+
+    #if self.stage == 1:
+    #  return self.on_elevator2(grid_position)
     
-    if self.stage == 1:
-      if self.current_flag == 2 or grid_position == self.drop_off[self.current_drop_off]:
-        self.kg = self.kd
-        return True
-      return False
+   # if self.stage == 1:
+   #   if self.current_flag == 2 or grid_position == self.drop_off[self.current_drop_off]:
+   #     self.kg = self.kd
+   #     return True
+   #   return False
 
     if self.current_flag == 2 and grid_position in self.pick_up:
       self.kg = self.kgback
@@ -178,7 +181,10 @@ class GridWorld:
    #     return True
    # return False
 
-  
+  def on_elevator2(self, grid_position):
+    if grid_position in self.elevator[2:]:
+      return True
+    return False
   def on_drop_off(self, grid_position):
     if self.current_flag == 1 and grid_position == self.drop_off[self.current_drop_off]:
       return True

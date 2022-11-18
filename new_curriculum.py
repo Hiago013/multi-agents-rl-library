@@ -36,32 +36,31 @@ class new_curriculum:
 
         # Segundo Estagio
         # Vale apenas (0, 1, drop, 0, [2, 3, 4, 5, 6])
-        states = np.array_split(np.arange(len(self.drop_off)), 3)
+        states = np.array_split(np.arange(len(self.drop_off)), 2)
         stages_aux = []
         del_pick_up = [0,1,3,4]
         for idx, item in enumerate(states):
-            if idx<2:
+            if idx<1:
                 del_grid_position = np.setdiff1d(all_grid_positions, self.pick_up)
-                del_drop_off = np.setdiff1d(states, item)
+                del_drop_off = np.setdiff1d(np.arange(len(self.drop_off)), item)
                 aux = np.delete(self.states, del_grid_position, axis=self.axis_grid_position)
                 aux = np.delete(aux, (0, 2), axis=self.axis_flag)
                 aux = np.delete(aux, np.arange(1, 16), axis=self.axis_dynamic)
                 aux = np.delete(aux, del_drop_off, axis=self.axis_drop_off)
-                aux = np.delete(aux, del_pick_up, axis = self.axis_pick_up) # posso tirar depois
+               # aux = np.delete(aux, del_pick_up, axis = self.axis_pick_up) # posso tirar depois
                 stages_aux.append((idx, aux.flatten()))
-
         last_drop = item
         states_last_drop = np.array_split(all_grid_positions, 6)[::-1]
         for idx, item in enumerate(states_last_drop):
             del_grid_position = list(set(self.obstacles + list(np.setdiff1d(all_grid_positions, item))))
-            del_drop_off = np.arange(len(self.drop_off)-1)
-            #del_drop_off = np.setdiff1d(states, last_drop)
+            #del_drop_off = np.arange(len(self.drop_off)-1)
+            del_drop_off = np.setdiff1d(np.arange(len(self.drop_off)), last_drop)
             aux = np.delete(self.states, del_grid_position, axis=self.axis_grid_position)
             aux = np.delete(aux, (0, 2), axis=self.axis_flag)
             aux = np.delete(aux, np.arange(1, 16), axis=self.axis_dynamic)
             aux = np.delete(aux, del_drop_off, axis=self.axis_drop_off)
             aux = np.delete(aux, del_pick_up, axis = self.axis_pick_up) # posso tirar depois
-            stages_aux.append((idx+2, aux.flatten()))
+            stages_aux.append((idx+1, aux.flatten()))
         
         self.stage[1] = dict(stages_aux)
 

@@ -25,38 +25,56 @@ if __name__ == '__main__':
     agent.load('qtable.txt')
 
 
-    # #Primeiro Estagio
-    # train_states = dict()
-    # aux = []
-    # for gp in env.get_possibles_grid_positions():
-    #    for pick in range(len(env.pick_up)):
-    #        for drop in range(len(env.drop_off)):
-    #            if gp not in {2, 3, 5, 6}:
-    #                aux.append(env.get_observation((0, 0, drop, pick, gp)))
-    #    train_states[env.get_observation((0, 0, 0, 2, gp))] = aux
-    #    aux = []
-    # #Transferencia do conhecimento do primeiro estagio
-    # transfer_learning = transfer()
-    # for key in train_states.keys():
-    #    for state in train_states[key]:
-    #        agent = transfer_learning.from_to(agent, state = key, state_ = state) 
-    # agent.save('qtable2.txt')
+    # # #Primeiro Estagio
+    # # train_states = dict()
+    # # aux = []
+    # # for gp in env.get_possibles_grid_positions():
+    # #    for pick in range(len(env.pick_up)):
+    # #        for drop in range(len(env.drop_off)):
+    # #            if gp not in {2, 3, 5, 6}:
+    # #                aux.append(env.get_observation((0, 0, drop, pick, gp)))
+    # #    train_states[env.get_observation((0, 0, 0, 2, gp))] = aux
+    # #    aux = []
+    # # #Transferencia do conhecimento do primeiro estagio
+    # # transfer_learning = transfer()
+    # # for key in train_states.keys():
+    # #    for state in train_states[key]:
+    # #        agent = transfer_learning.from_to(agent, state = key, state_ = state) 
+    # # agent.save('qtable2.txt')
 
+    # # # Primeiro Estagio
+    # # train_states = dict()
+    # # aux = []
+    # # for gp in env.get_possibles_grid_positions():
+    # #     for pick in range(len(env.pick_up)):
+    # #         for drop in range(len(env.drop_off)):
+    # #             aux.append(env.get_observation((0, 0, drop, pick, gp)))
+    # #         train_states[env.get_observation((0, 0, 0, pick, gp))] = aux
+    # #         aux = []
+    # # # Transferencia do conhecimento do primeiro estagio
+    # # transfer_learning = transfer()
+    # # for key in train_states.keys():
+    # #     for state in train_states[key]:
+    # #         agent = transfer_learning.from_to(agent, state = key, state_ = state) 
+    # # agent.save('qtable3.txt')
+
+    agent.load('qtable.txt')
+    # Chegar corretamento no pick para qualquer drop
     # Primeiro Estagio
     train_states = dict()
     aux = []
     for gp in env.get_possibles_grid_positions():
         for pick in range(len(env.pick_up)):
             for drop in range(len(env.drop_off)):
-                aux.append(env.get_observation((0, 0, drop, pick, gp)))
-            train_states[env.get_observation((0, 0, 0, pick, gp))] = aux
-            aux = []
+                aux.append(env.get_observation((0, 2, drop, pick, gp)))
+        train_states[env.get_observation((0, 0, 0, 2, gp))] = aux
+        aux = []
     # Transferencia do conhecimento do primeiro estagio
     transfer_learning = transfer()
     for key in train_states.keys():
         for state in train_states[key]:
             agent = transfer_learning.from_to(agent, state = key, state_ = state) 
-    agent.save('qtable3.txt')
+    agent.save('qtable4.txt')
 
 
 
