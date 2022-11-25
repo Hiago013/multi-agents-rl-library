@@ -44,7 +44,7 @@ def visualizar():
     pass
 
 
-env = GridWorld(9, 9, -5, 50, 100, 150, 1)
+env = GridWorld(9, 9, -1, 50, 100, 150, 1)
 env.set_pick_up([2, 3, 4, 5, 6])
 env.set_drop_off([18, 25, 27, 30, 34, 39, 43, 48, 110, 113, 119, 122, 133, 142, 145])
 env.set_obstacles([19, 20, 22, 23, 26, 28, 29, 31, 32, 35, 37, 38, 40, 41, 44, \
@@ -64,12 +64,12 @@ ma = multi_agent(agent, env, n_agents)
 
 control_trainning = {0: {'epoch': [50, 100, 150, 200, 250, 300],
                         'epsilon': .1,
-                        'retrain': [100, 100, 100, 500, 800, 1000],
+                        'retrain': [200, 300, 400, 500, 800, 1000],
                         'n_agents': 1,
                         'n_books': 0,
                         'max_ep': lambda x: x}}
 
-for all_estagios in range(19, 23):
+for all_estagios in range(36, 37):
     print('\n', all_estagios)
     env.set_stage(1)
     if all_estagios < 6:
@@ -126,7 +126,7 @@ for all_estagios in range(19, 23):
         env.set_progressive_curriculum(all_estagios)
         ma.set_ep(.1, 1 - (all_estagios % 6)/10, max_ep) #np.log10(10-all_estagios)
     
-    elif all_estagios > 18 and all_estagios < 23:
+    elif all_estagios > 18 and all_estagios < 24:
         n_epoch = control_trainning[0]['retrain'][all_estagios % 6]
         n_books = control_trainning[0]['n_books']
         n_agents = control_trainning[0]['n_agents']
@@ -135,24 +135,80 @@ for all_estagios in range(19, 23):
         agent.epsilon = control_trainning[0]['epsilon']
         env.set_progressive_curriculum(all_estagios)
         ma.set_ep(.1, 1 - (all_estagios % 6)/10, max_ep) #np.log10(10-all_estagios)
+    
+    elif all_estagios == 24:
+        env.set_stage(0)
+        transfer_learning_kevin(env, agent, 3)
+        transfer_learning_kevin(env, agent, 4)
+        ma.load('qtable.txt')
+        n_epoch = control_trainning[0]['epoch'][all_estagios % 6]
+        n_books = control_trainning[0]['n_books']
+        n_agents = control_trainning[0]['n_agents']
+        fmax_ep = control_trainning[0]['max_ep']
+        max_ep = fmax_ep(n_epoch)
+        agent.epsilon = control_trainning[0]['epsilon']
+        env.set_progressive_curriculum(all_estagios % 6 )
+        ma.set_ep(.1, 1 - (all_estagios % 6) / 10, max_ep) #np.log10(10-all_estagios)
+    
+    elif all_estagios > 24 and all_estagios < 30:
+        env.set_stage(0)
+        n_epoch = control_trainning[0]['epoch'][all_estagios % 6]
+        n_books = control_trainning[0]['n_books']
+        n_agents = control_trainning[0]['n_agents']
+        fmax_ep = control_trainning[0]['max_ep']
+        max_ep = fmax_ep(n_epoch)
+        agent.epsilon = control_trainning[0]['epsilon']
+        env.set_progressive_curriculum(all_estagios % 6)
+        ma.set_ep(.1, 1 - (all_estagios % 6) / 10, max_ep) #np.log10(10-all_estagios)
+    
+    elif all_estagios == 30:
+        env.set_stage(0)
+        transfer_learning_kevin(env, agent, 5)
+        ma.load('qtable')
+        n_epoch = control_trainning[0]['retrain'][all_estagios % 6]
+        n_books = control_trainning[0]['n_books']
+        n_agents = control_trainning[0]['n_agents']
+        fmax_ep = control_trainning[0]['max_ep']
+        max_ep = fmax_ep(n_epoch)
+        agent.epsilon = control_trainning[0]['epsilon']
+        env.set_progressive_curriculum(all_estagios % 12)
+        ma.set_ep(.1, 1 - (all_estagios % 6) / 10, max_ep) #np.log10(10-all_estagios)
+    
+    elif all_estagios > 30 and all_estagios < 36:
+        env.set_stage(0)
+        n_epoch = control_trainning[0]['retrain'][all_estagios % 6]
+        n_books = control_trainning[0]['n_books']
+        n_agents = control_trainning[0]['n_agents']
+        fmax_ep = control_trainning[0]['max_ep']
+        max_ep = fmax_ep(n_epoch)
+        agent.epsilon = control_trainning[0]['epsilon']
+        env.set_progressive_curriculum(all_estagios % 12)
+        ma.set_ep(.1, 1 - (all_estagios % 6) / 10, max_ep) #np.log10(10-all_estagios)
+    
+    elif all_estagios == 36:
+        env.set_stage(2)
+        transfer_learning_kevin(env, agent, 6)
+        ma.load('qtable2')
+        break
+
         
-
-
-
-        
+    
     ma.set_n_agents(n_agents)
     reward_sum = np.zeros((n_agents, n_epoch))
 
     for epoch in range(n_epoch):
         observations = ma.reset()
+        #print(env.get_states(observations[0]))
         ma.books(n_books)
         done = [False, False]
        # ma.set_ep(.001, .1, 2)
         while not (True in done):
             observation_, reward, done, info = ma.step_agents2(epoch + 1, max_ep)
+            #print(env.what_position(observation_[0]), reward, ma.main_agent.epsilon)
             reward_sum[0][epoch] +=  reward[0]
             #visualizar()
         print(epoch, end='\r')
+    print('len q table:', len(ma.get_q_table()))
     ma.save('qtable')
     plt.figure()
     plt.plot(reward_sum[0])

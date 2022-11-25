@@ -325,13 +325,13 @@ if __name__ == '__main__':
                        46, 47, 49, 50, 53, 90, 91, 93, 94, 97, 98, 99, 100, 102, \
                        103, 106, 107, 108, 109, 111, 112, 115, 116, 117, 118, 120, \
                        121,124, 125, 149, 150, 151, 152, 153, 154, 155, 156, 158, 159,\
-                       160, 161, 74, 78])
+                       160, 161])
     env.possible_states()
     env.load_available_action2()
     env.load_available_flag_dynamic2()
     
     agent = brain(.1, .99, .1, len(env.action_space()), len(env.state_space()))
-    agent.load('qtable.txt')
+    #agent.load('qtable.txt')
     n_agents = 1
     ma = multi_agent(agent, env, n_agents)
 
@@ -350,7 +350,7 @@ if __name__ == '__main__':
     #num_epoch_first_stage = [(50, .1), (50, .1), (200, .1), (200, .1), (200, .1), (200, .1)]
     #num_epoch_first_stage = [(300, .1), (300, .1), (300, .1)]#, (50, .1), (50, .1), (50, .1), (50, .1)]
     num_epoch_second_stage = [(150, .1), (150, .1), (150, .1), (150, .1), (150, .1), (270, .1), (120, .1), (220, .1)]
-    for all_estagios in range(12, 16):
+    for all_estagios in range(0, 16):
         print('\n', all_estagios)
         env.set_stage(0)
         if all_estagios < 9:
@@ -459,48 +459,48 @@ if __name__ == '__main__':
         
         for epoch in range(n_epoch):
             observations = ma.reset()
-            # current_pick_up = ma.data[0][-2]
-            # pick_point = np.array(state2cartesian(pick_up[current_pick_up]))
-            # current_drop_off = ma.data[0][-3]
-            # drop_point = np.array(state2cartesian(drop_off[current_drop_off]))
+            current_pick_up = ma.data[0][-2]
+            pick_point = np.array(state2cartesian(pick_up[current_pick_up]))
+            current_drop_off = ma.data[0][-3]
+            drop_point = np.array(state2cartesian(drop_off[current_drop_off]))
             ma.books(n_books)
-           # img = np.zeros((450, 900, 3), dtype='uint8')
+            img = np.zeros((450, 900, 3), dtype='uint8')
             done = [False, False]
             while not (True in done):
-        #         cv2.imshow('Grid_World', img)
-        #         cv2.waitKey(1)
-        #         img = np.zeros((450, 900, 3), dtype='uint8')
-        #   ##      # Desenhar elementos estaticos
-        #         for point in points_obstacles:
-        #             cv2.rectangle(img, point, point + 50, (0, 0, 255), 5)
-        #  # #   
-        #         for point in drop_off_points :
-        #             cv2.rectangle(img, point, point + 50, (0, 255, 255), 5)
-        #         cv2.rectangle(img, drop_point, drop_point + 50, (0, 255, 255), -1)
-        # #  #   
-        #         for point in pick_up_point:
-        #             cv2.rectangle(img, point, point + 50, (0, 255, 0), 5)
-        #         cv2.rectangle(img, pick_point, pick_point + 50, (0, 255, 0), -1)
-                 observation_, reward, done, info = ma.step_agents2(epoch + 1, max_ep)
-        #        # print(reward)
-            #     agent_position = info['grid_position']
-            #     reward_sum[0][epoch] +=  reward[0]
-            # # view()
+                cv2.imshow('Grid_World', img)
+                cv2.waitKey(1)
+                img = np.zeros((450, 900, 3), dtype='uint8')
+          ##      # Desenhar elementos estaticos
+                for point in points_obstacles:
+                    cv2.rectangle(img, point, point + 50, (0, 0, 255), 5)
+         # #   
+                for point in drop_off_points :
+                    cv2.rectangle(img, point, point + 50, (0, 255, 255), 5)
+                cv2.rectangle(img, drop_point, drop_point + 50, (0, 255, 255), -1)
+        #  #   
+                for point in pick_up_point:
+                    cv2.rectangle(img, point, point + 50, (0, 255, 0), 5)
+                cv2.rectangle(img, pick_point, pick_point + 50, (0, 255, 0), -1)
+                observation_, reward, done, info = ma.step_agents2(epoch + 1, max_ep)
+               # print(reward)
+                agent_position = info['grid_position']
+                reward_sum[0][epoch] +=  reward[0]
+            # view()
 
-        #     # Takes step after fixed time
-        #         t_end = time.time()
-        #         while time.time() < t_end:
-        #             continue
-        #    # #    
-        #         for idx, n_agnt in enumerate(agent_position):
-        #             agent_state = n_agnt
-        #             agent_point = np.array(state2cartesian(agent_state))
-        #             cv2.rectangle(img, agent_point, agent_point + 50, [255, int(idx/2 * 255), idx*100], 3)
+            # Takes step after fixed time
+                t_end = time.time()
+                while time.time() < t_end:
+                    continue
+           # #    
+                for idx, n_agnt in enumerate(agent_position):
+                    agent_state = n_agnt
+                    agent_point = np.array(state2cartesian(agent_state))
+                    cv2.rectangle(img, agent_point, agent_point + 50, [255, int(idx/2 * 255), idx*100], 3)
 
                 
             print(epoch, end='\r')
-        ma.save('qtable')
-       # plt.plot(reward_sum[0])
+        #ma.save('qtable')
+        plt.plot(reward_sum[0])
     # plt.plot(reward_sum[1])
         
       #  plt.show()

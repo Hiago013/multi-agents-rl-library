@@ -8,9 +8,33 @@ class transfer(object):
     def from_to(self, agent : brain, state, state_):
         agent.set_qvalue(state_, .5 * agent.get_q_table()[state])
         return agent
+    
+    def from_to_reverse(self, agent : brain, state, state_):
+        value = 0 * agent.get_q_table()[state]
+        value[0] = -60
+        value[1] = -40
+        value[2] = -40
+        value[3] = -40
+        value[4] = -60
+        # value = .5 * agent.get_q_table()[state]
+        # if 0 not in value[:2]:
+        #     value[:2] = value[:2][::-1]
+        # else:
+        #     value[:2] = 0
+        # if 0 not in value[2:4]:
+        #     value[2:4] = value[2:4][::-1]
+        # else:
+        #     value[2:4] = 0
+# #       value[0], value[1], value[2], value[3] = value[1], value[0], value[3], value[2]
+# #        for idx, val in enumerate(value):
+# #            if val == 0:
+# #                value[idx] = -100
+        agent.set_qvalue(state_, value)
+        return agent
+
 
 if __name__ == '__main__':
-    env = GridWorld(9, 9, -1, 50, 100,150,1)
+    env = GridWorld(9, 9, -1, 50, 100, 150, 1)
     env.set_pick_up([2, 3, 4, 5, 6])
     env.set_drop_off([18, 25, 27, 30, 34, 39, 43, 48, 110, 113, 119, 122, 133, 142, 145])
     env.set_obstacles([19, 20, 22, 23, 26, 28, 29, 31, 32, 35, 37, 38, 40, 41, 44, \

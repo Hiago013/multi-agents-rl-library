@@ -17,7 +17,7 @@ def cartesian2state(cartesian_point):
     return 9 * x + y
 #####
 
-env = GridWorld(9, 9, -1, 50, 100,150,1)
+env = GridWorld(9, 9, -1, 50, 100, 150, 1)
 env.set_pick_up([2, 3, 4, 5, 6])
 env.set_drop_off([18, 25, 27, 30, 34, 39, 43, 48, 110, 113, 119, 122, 133, 142, 145])
 env.set_obstacles([19, 20, 22, 23, 26, 28, 29, 31, 32, 35, 37, 38, 40, 41, 44, \
@@ -30,9 +30,9 @@ env.load_available_action2()
 env.load_available_flag_dynamic2()
 agent = brain(.1, .99, .1, len(env.action_space()), len(env.state_space()))
 agent.filter_q_table(env.state_action)
-agent.load('qtable.txt')
-env.set_stage(1)
-env.set_progressive_curriculum(23)
+agent.load('qtable2.txt')
+env.set_stage(2)
+env.set_progressive_curriculum(0)
 obstacle = env.obstacles
 points_obstacles = [np.array((state2cartesian(state))) for state in obstacle]
 
@@ -49,10 +49,16 @@ ma = multi_agent(agent, env, n_agents)
 color_agents = [(np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)) for i in range(n_agents)]
 agent_position = [1, 2]
 
-print(agent.get_q_table()[24669])
-print(agent.get_q_table()[24669])
-print(env.get_states(24669))
+print(agent.get_q_table()[0])
+print(env.get_states(1709))
 
+print(env.get_observation((0,1,14,0,89)))
+
+print(agent.get_q_table()[23579])
+print(env.get_states(7290))
+
+#while True:
+ #   pass
 
 for w in range(50):
     ma.books(0)

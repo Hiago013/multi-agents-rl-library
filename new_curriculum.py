@@ -29,8 +29,8 @@ class new_curriculum:
             aux = np.delete(self.states, del_grid_position, axis=self.axis_grid_position)
             aux = np.delete(aux, (1,2), axis = self.axis_flag)
             aux = np.delete(aux, np.arange(1,16), axis=self.axis_dynamic)
-            #aux = np.delete(aux, del_drop_off, axis=self.axis_drop_off)  # posso tirar depois
-            #aux = np.delete(aux, [0, 1, 3, 4], axis = self.axis_pick_up) # posso tirar depois
+            aux = np.delete(aux, del_drop_off, axis=self.axis_drop_off)  # posso tirar depois
+            aux = np.delete(aux, [0, 1, 3, 4], axis = self.axis_pick_up) # posso tirar depois
             stages_aux.append((idx, aux.flatten()))
         self.stage[0] = dict(stages_aux)
 

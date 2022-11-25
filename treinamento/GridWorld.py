@@ -84,10 +84,10 @@ class GridWorld:
     #if len(self.stack_states) == 0:
     #  for item in self.ncrr.get_stage(self.stage)[self.progressive]:
     #    self.stack_states.push(item)
-    if self.stage >= 3:
-        self.state = np.random.choice(self.ncrr.get_stage(3))
-    else:
-        self.state = np.random.choice(self.ncrr.get_stage(self.stage)[self.progressive]) # falta arrumar esse
+  # # #if self.stage >= 3:
+  # # #    self.state = np.random.choice(self.ncrr.get_stage(3))
+  # # #else:
+    self.state = np.random.choice(self.ncrr.get_stage(self.stage)[self.progressive]) # falta arrumar esse
     self.current_dynamic, self.current_flag, self.current_drop_off, self.current_pick_up, \
     self.grid_position = np.array(np.where(self.state == self.all_states)).squeeze()
     return self.state
@@ -130,6 +130,7 @@ class GridWorld:
   
   def on_goal(self, grid_position):
     if self.stage == 0:
+      self.kg = self.kp
       if self.current_flag == 1 or \
          (self.current_flag == 0 and grid_position == self.pick_up[self.current_pick_up]):
          self.kg = self.kp
@@ -191,6 +192,12 @@ class GridWorld:
     if grid_position in self.elevator[2:]:
       return True
     return False
+  
+  def on_elevator3(self, grid_position):
+    if grid_position in self.elevator[:2]:
+      return True
+    return False
+
   def on_drop_off(self, grid_position):
     if self.current_flag == 1 and grid_position == self.drop_off[self.current_drop_off]:
       return True
@@ -292,10 +299,10 @@ class GridWorld:
     if self.on_pick_up(state_):
       reward += self.kp
 
-    if self.on_goal(state_):
-      reward += self.kg
-      if self.action == 4:
-        reward += self.kg // 4
+    #if self.on_goal(state_):
+    #  reward += self.kg
+    #  if self.action == 4:
+    #    reward += self.kg // 4
         
     if self.action == 4:
       reward -= 6
@@ -307,52 +314,44 @@ class GridWorld:
    # if self.action == 3 and self.current_flag == 2:
    #   reward -= 1
     
-    #if self.action == 0 and (self.current_flag == 2 or self.current_flag == 0):
-    #  reward -= 1
+   # if self.action == 0 and (self.current_flag == 2 or self.current_flag == 0):
+   #   reward -= 1
     
-    if self.current_flag == 0 :
-      position_goal = self.pick_up[self.current_pick_up]
-      xg, yg = divmod(position_goal, self.row)
+    # if self.current_flag == 0 :
+    #   position_goal = self.pick_up[self.current_pick_up]
+    #   xg, yg = divmod(position_goal, self.row)
       
-      position_agent = self.what_position(state_)
-      xa, ya = divmod(position_agent, self.row)
+    #   position_agent = self.what_position(state_)
+    #   xa, ya = divmod(position_agent, self.row)
 
-      distance = np.abs(xg - xa) + np.abs(yg - ya)
-      reward -= distance**2 / (2 * self.row + self.row - 2)**2
+    #   distance = np.abs(xg - xa) + np.abs(yg - ya)
+    #   reward -= distance**2 / (2 * self.row + self.row - 2)**2
 
-    elif self.current_flag == 1:
-      position_goal = self.drop_off[self.current_drop_off]
-      xg, yg = divmod(position_goal, self.row)
+    # elif self.current_flag == 1:
+    #   position_goal = self.drop_off[self.current_drop_off]
+    #   xg, yg = divmod(position_goal, self.row)
       
-      position_agent = self.what_position(state_)
-      xa, ya = divmod(position_agent, self.row)
+    #   position_agent = self.what_position(state_)
+    #   xa, ya = divmod(position_agent, self.row)
 
-      distance = np.abs(xg - xa) + np.abs(yg - ya)
-      reward -= distance**2 / (2 * self.row + self.row - 2)**2
+    #   distance = np.abs(xg - xa) + np.abs(yg - ya)
+    #   reward -= distance**2 / (2 * self.row + self.row - 2)**2
     
-    else:
-      position_agent = self.what_position(state_)
-      min_dist = 100
+    # else:
+    #   position_agent = self.what_position(state_)
+    #   min_dist = 100
 
-      for pick_up in self.pick_up:
-        position_goal = pick_up
-        xg, yg = divmod(position_goal, self.row)
-        position_agent = self.what_position(state_)
-        xa, ya = divmod(position_agent, self.row)
-        distance = np.abs(xg - xa) + np.abs(yg - ya)
-        if distance < min_dist:
-          min_dist = distance
-        distance = min_dist
+    #   for pick_up in self.pick_up:
+    #     position_goal = pick_up
+    #     xg, yg = divmod(position_goal, self.row)
+    #     position_agent = self.what_position(state_)
+    #     xa, ya = divmod(position_agent, self.row)
+    #     distance = np.abs(xg - xa) + np.abs(yg - ya)
+    #     if distance < min_dist:
+    #       min_dist = distance
+    #     distance = min_dist
 
-
-      #position_goal = self.pick_up[2]
-      #xg, yg = divmod(position_goal, self.row)
-      
-      #position_agent = self.what_position(state_)
-      #xa, ya = divmod(position_agent, self.row)
-
-      #distance = np.abs(xg - xa) + np.abs(yg - ya)
-      reward -= distance**2 / (2 * self.row + self.row - 2)**2
+    #   reward -= distance**2 / (2 * self.row + self.row - 2)**2
 
     
 
