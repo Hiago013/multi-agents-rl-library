@@ -39,7 +39,7 @@ class new_curriculum:
         # Primeiro Estagio
         # Vale apenas (0, 1, [8-14], [2], grid_position)
         # Aprender a levar até a última estante em qualquer posição do mapa
-        del_drop_off = np.arange(0, 9) # Entregar apenas no 2 andar
+        del_drop_off = np.arange(0, 8) # Entregar apenas no 2 andar
         del_dynamic = np.arange(1,16) # Não há nenhum outro robo
         del_flag = [0, 2] # flag 1, ou seja, entregar
         del_pick = [0, 1, 3, 4] # Saindo apenas da baia central
@@ -135,6 +135,17 @@ class new_curriculum:
 
         self.stage[2] = dict(stages_aux)
         
+        ### 
+        stages_aux.clear()
+        del_flag = [2, 1] # Flag 2, ou seja, voltar
+        del_dynamic = np.arange(1, 16) # Não há nenhum outro robo
+        del_grid_position = self.obstacles
+        aux = np.delete(self.states, del_grid_position, axis=self.axis_grid_position)
+        aux = np.delete(aux, del_flag, axis = self.axis_flag)
+        aux = np.delete(aux, del_dynamic, axis=self.axis_dynamic)
+        stages_aux.append((0, aux.flatten()))
+
+        self.stage[3] = dict(stages_aux)
 
 
 
@@ -261,7 +272,7 @@ if __name__ == '__main__':
 
     #print('ok')
     #print((crr.stage[1][12]))
-    for item in crr.stage[2][0]:
+    for item in crr.stage[3][0]:
         print(env.get_states(item))
         print('')
     #    for state in crr.stage[1][key]:

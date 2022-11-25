@@ -57,7 +57,7 @@ env.load_available_action2()
 env.load_available_flag_dynamic2()
 
 agent = brain(.1, .99, .2, len(env.action_space()), len(env.state_space()))
-agent.load('qtable.txt')
+agent.load('qtable2.txt')
 
 n_agents = 1
 ma = multi_agent(agent, env, n_agents)
@@ -69,7 +69,7 @@ control_trainning = {0: {'epoch': [50, 100, 150, 200, 250, 300],
                         'n_books': 0,
                         'max_ep': lambda x: x}}
 
-for all_estagios in range(36, 37):
+for all_estagios in range(36, 40):
     print('\n', all_estagios)
     env.set_stage(1)
     if all_estagios < 6:
@@ -188,8 +188,22 @@ for all_estagios in range(36, 37):
     elif all_estagios == 36:
         env.set_stage(2)
         transfer_learning_kevin(env, agent, 6)
-        ma.load('qtable2')
+        transfer_learning_kevin(env, agent, 7)
+        ma.load('qtable')
         break
+    
+    else:
+        #ma.load('qtable')
+        env.set_stage(3)
+        n_epoch = control_trainning[0]['retrain'][all_estagios % 6]
+        n_books = control_trainning[0]['n_books']
+        n_agents = control_trainning[0]['n_agents']
+        fmax_ep = control_trainning[0]['max_ep']
+        max_ep = fmax_ep(n_epoch)
+        agent.epsilon = control_trainning[0]['epsilon']
+        env.set_progressive_curriculum(0)
+        ma.set_ep(.1, .1, 1) #np.log10(10-all_estagios)
+
 
         
     
@@ -199,17 +213,17 @@ for all_estagios in range(36, 37):
     for epoch in range(n_epoch):
         observations = ma.reset()
         #print(env.get_states(observations[0]))
-        ma.books(n_books)
+        ma.books(3)
         done = [False, False]
        # ma.set_ep(.001, .1, 2)
         while not (True in done):
             observation_, reward, done, info = ma.step_agents2(epoch + 1, max_ep)
-            #print(env.what_position(observation_[0]), reward, ma.main_agent.epsilon)
+            print(env.get_states(observation_[0]), reward, ma.main_agent.epsilon)
             reward_sum[0][epoch] +=  reward[0]
-            #visualizar()
+            visualizar()
         print(epoch, end='\r')
     print('len q table:', len(ma.get_q_table()))
-    ma.save('qtable')
+    #ma.save('qtable')
     plt.figure()
     plt.plot(reward_sum[0])
     plt.savefig(f'grafico{all_estagios}.png', dpi=600)

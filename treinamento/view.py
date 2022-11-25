@@ -30,8 +30,8 @@ env.load_available_action2()
 env.load_available_flag_dynamic2()
 agent = brain(.1, .99, .1, len(env.action_space()), len(env.state_space()))
 agent.filter_q_table(env.state_action)
-agent.load('qtable2.txt')
-env.set_stage(2)
+agent.load('qtable.txt')
+env.set_stage(3)
 env.set_progressive_curriculum(0)
 obstacle = env.obstacles
 points_obstacles = [np.array((state2cartesian(state))) for state in obstacle]

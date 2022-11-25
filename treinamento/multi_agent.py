@@ -370,6 +370,27 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
     if tl == 6:
         agent.load('qtable.txt') 
         print('oi')
+        # Transferir para chegar em qualquer baia
+        #Primeiro Estagio
+        train_states = dict()
+        aux = []
+        for gp in env.get_possibles_grid_positions():
+            for pick in range(len(env.pick_up)):
+                for drop in range(len(env.drop_off)):
+                    aux.append(env.get_observation((0, 0, drop, pick, gp)))
+                train_states[env.get_observation((0, 0, 0, pick, gp))] = aux
+                aux = []
+        print('oi2')
+        #Transferencia do conhecimento do primeiro estagio
+        transfer_learning = transfer()
+        for key in train_states.keys():
+            for state in train_states[key]:
+                agent = transfer_learning.from_to(agent, state = key, state_ = state) 
+        agent.save('qtable.txt')
+        print('fim')
+    if tl == 7:
+        agent.load('qtable.txt') 
+        print('oi')
         # Transferir para chegar até a baia central
         #Primeiro Estagio
         train_states = dict()
@@ -386,7 +407,7 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
         for key in train_states.keys():
             for state in train_states[key]:
                 agent = transfer_learning.from_to(agent, state = key, state_ = state) 
-        agent.save('qtable2.txt')
+        agent.save('qtable.txt')
         print('fim')
 
 
