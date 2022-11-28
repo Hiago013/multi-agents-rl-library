@@ -44,24 +44,34 @@ pick_up_point = [np.array((state2cartesian(state))) for state in pick_up]
 
 
 #observation = env.reset()
-n_agents = 1
+n_agents = 2
 ma = multi_agent(agent, env, n_agents)
 color_agents = [(np.random.randint(0, 255), np.random.randint(0, 255), np.random.randint(0, 255)) for i in range(n_agents)]
 agent_position = [1, 2]
 
-print(agent.get_q_table()[0])
-print(env.get_states(1709))
+##print(agent.get_q_table()[0])
+#print(env.get_states(1709))
 
-print(env.get_observation((0,1,14,0,89)))
+# print(env.get_observation((0, 1, 14, 2, 136)))
+# print(env.get_observation((0, 1, 3, 2, 21)))
+# print(env.get_observation((0, 2, 0, 2, 11)))
 
-print(agent.get_q_table()[23579])
-print(env.get_states(7290))
+print(env.get_observation((0, 1, 0, 2, 21)))
+print(env.get_observation((1, 0, 3, 2, 15)))
+print(env.get_observation((0, 0, 3, 2, 15)))
 
+# print(agent.get_q_table()[23950])
+# print(agent.get_q_table()[14925])
+print(agent.get_q_table()[2769])
+print(agent.get_q_table()[39219])
+#print(env.get_states(12495))
+
+print(len(agent.get_q_table()))
 #while True:
- #   pass
+#    pass
 
-for w in range(50):
-    ma.books(0)
+for w in range(1, 50):
+    ma.books(4)
     print(ma.book)
     observations = ma.reset()
     current_pick_up = ma.data[0][-2]
@@ -87,6 +97,23 @@ for w in range(50):
     img = np.zeros((450, 900, 3), dtype='uint8')
     done = [False]
     while True:
+
+        current_pick_up = ma.data[0][-2]
+        pick_point = np.array(state2cartesian(pick_up[current_pick_up]))
+        #ma.observations = [811, 751]
+        #observations = [811, 751]
+
+        agent_positions = [ma.data[i][-1] for i in range(n_agents)]
+        agent_point = [np.array(state2cartesian(agent_position)) for agent_position in agent_positions]
+
+
+        crrnt_pckp_stt = pick_up[env.current_pick_up]
+        crrnt_drpff_stt = drop_off[env.current_drop_off]
+
+        #agent_position = env.grid_position
+        #agent_point = np.array(state2cartesian(agent_position))
+        #pick_point = np.array(state2cartesian(crrnt_pckp_stt))
+        drop_point = np.array(state2cartesian(crrnt_drpff_stt))
         
 
         cv2.imshow('GridWorld', img)
@@ -123,7 +150,7 @@ for w in range(50):
         print(env.get_states(observations[0]))
         #print(env.get_states(observations[1]))
         #print(env.get_states(observations[2]))
-        print('---')
+        # print('---')
 
         #print(agent_position)
         

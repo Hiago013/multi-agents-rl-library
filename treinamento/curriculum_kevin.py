@@ -56,7 +56,7 @@ class new_curriculum:
         # Primeiro Estagio
         # Vale apenas (0, 1, 0, 2, grid_position)
         # Aprender a levar até a última estante em qualquer posição do mapa
-        del_drop_off = np.arange(1,len(self.drop_off)) # Entregar apenas no primeiro
+        del_drop_off = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] #np.arange(1,len(self.drop_off)) # Entregar apenas no primeiro
         del_dynamic = np.arange(1,16)                  # considerar que não há nenhum outro robo
         del_flag = [0, 2]                              # Flag 1, ou seja, entregar
         del_pick = [0, 1, 3, 4]                        # Saindo apenas da baia central
@@ -123,26 +123,47 @@ class new_curriculum:
         
         self.stage[0] = dict(stages_aux)
 
-        ### Estagio de voltar até a baia
-        stages_aux.clear()
-        del_flag = [0, 1] # Flag 2, ou seja, voltar
-        del_dynamic = np.arange(1,16) # Não há nenhum outro robo
-        del_grid_position = self.obstacles
-        aux = np.delete(self.states, del_grid_position, axis=self.axis_grid_position)
-        aux = np.delete(aux, del_flag, axis = self.axis_flag)
-        aux = np.delete(aux, del_dynamic, axis=self.axis_dynamic)
-        stages_aux.append((0, aux.flatten()))
+        # ### Estagio de voltar até a baia
+        # stages_aux.clear()
+        # del_flag = [0, 1] # Flag 2, ou seja, voltar
+        # del_dynamic = np.arange(1,16) # Não há nenhum outro robo
+        # del_grid_position = self.obstacles
+        # aux = np.delete(self.states, del_grid_position, axis=self.axis_grid_position)
+        # aux = np.delete(aux, del_flag, axis = self.axis_flag)
+        # aux = np.delete(aux, del_dynamic, axis=self.axis_dynamic)
+        # stages_aux.append((0, aux.flatten()))
 
-        self.stage[2] = dict(stages_aux)
+        # self.stage[2] = dict(stages_aux)
         
-        ### 
+        ### Estagio de sair de qualquer lugar e ir até a baia
+        stages_aux.clear()
+        del_flag = [0, 1] # Flag 2, ou seja, voltar (finalizar)
+        del_dynamic = np.arange(1,16) # Não há nenhum outro robo
+        del_pick = [0, 1, 3, 4] # Saindo apenas da baia central
+        del_drop_off = np.arange(1, len(self.drop_off))
+        for idx, item in enumerate(states[::-1]):
+            del_grid_position = list(set(self.obstacles + list(np.setdiff1d(all_grid_positions, item))))
+            aux = np.delete(self.states, del_grid_position, axis=self.axis_grid_position)
+            aux = np.delete(aux, del_flag, axis = self.axis_flag)
+            aux = np.delete(aux, del_dynamic, axis=self.axis_dynamic)
+            aux = np.delete(aux, del_drop_off, axis=self.axis_drop_off)  # posso tirar depois
+            aux = np.delete(aux, del_pick, axis = self.axis_pick_up) # posso tirar depois
+            stages_aux.append((idx, aux.flatten()))
+        
+        self.stage[2] = dict(stages_aux)
+
+        ### Treino multi-agentes
         stages_aux.clear()
         del_flag = [2, 1] # Flag 2, ou seja, voltar
         del_dynamic = np.arange(1, 16) # Não há nenhum outro robo
         del_grid_position = self.obstacles
+        del_pick = [0, 1, 3, 4] # Saindo apenas da baia central
+        del_drop_off = np.arange(1, len(self.drop_off))
         aux = np.delete(self.states, del_grid_position, axis=self.axis_grid_position)
         aux = np.delete(aux, del_flag, axis = self.axis_flag)
         aux = np.delete(aux, del_dynamic, axis=self.axis_dynamic)
+        #aux = np.delete(aux, del_drop_off, axis=self.axis_drop_off)  # posso tirar depois
+        #aux = np.delete(aux, del_pick, axis = self.axis_pick_up) # posso tirar depois
         stages_aux.append((0, aux.flatten()))
 
         self.stage[3] = dict(stages_aux)
@@ -272,6 +293,9 @@ if __name__ == '__main__':
 
     #print('ok')
     #print((crr.stage[1][12]))
+    #a = np.array(list(map(env.get_states, crr.stage[3][0])))
+    #print((a[:,4]))
+
     for item in crr.stage[3][0]:
         print(env.get_states(item))
         print('')

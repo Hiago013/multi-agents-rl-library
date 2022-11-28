@@ -5,8 +5,12 @@ class transfer(object):
     def __init__(self):
         pass
 
-    def from_to(self, agent : brain, state, state_):
-        agent.set_qvalue(state_, .5 * agent.get_q_table()[state])
+    def from_to(self, agent : brain, state, state_, default=.8):
+        agent.set_qvalue(state_, default * agent.get_q_table()[state])
+        return agent
+    
+    def from_to_dynamic(self, agent : brain, state, state_):
+        agent.set_qvalue(state_, .8 * agent.get_q_table()[state])
         return agent
     
     def from_to_reverse(self, agent : brain, state, state_):

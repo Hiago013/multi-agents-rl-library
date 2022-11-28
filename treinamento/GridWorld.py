@@ -18,6 +18,8 @@ class GridWorld:
     self.flag_dynamic = 16
     self.floors = 2
     self.stage = 3
+
+    self.last_stage = None
     
 
     self.state, self.action, self.reward, self.state_, self.done = (0, 0, 0, 0, 0)
@@ -33,6 +35,7 @@ class GridWorld:
 
   def set_pick_up(self, pick_up : np.array):
     self.pick_up = pick_up
+  
   
   def set_drop_off(self, drop_off : np.array):
     self.drop_off = drop_off
@@ -90,6 +93,10 @@ class GridWorld:
     self.state = np.random.choice(self.ncrr.get_stage(self.stage)[self.progressive]) # falta arrumar esse
     self.current_dynamic, self.current_flag, self.current_drop_off, self.current_pick_up, \
     self.grid_position = np.array(np.where(self.state == self.all_states)).squeeze()
+
+    if self.last_stage != self.stage:
+      self.last_stage = self.stage
+      self.aux = np.array(list(map(self.get_states, self.ncrr.get_stage(self.stage)[self.progressive])))
     return self.state
     # Antigo Curriculum
     #if self.stage == 5:
@@ -116,6 +123,8 @@ class GridWorld:
       return self.grid_position
     if self.on_obstacle(grid_position_):
       return self.grid_position
+    #if self.filter_move(grid_position_):
+    #  return self.grid_position
     return grid_position_
   
   def on_map(self, grid_position):
@@ -208,11 +217,16 @@ class GridWorld:
       return True
     return False
   
+  def on_terminate(self, grid_position):
+    if self.current_flag == 2 and grid_position in self.pick_up:
+      return True
+    return False
+  
   def on_done(self, grid_position):
     if self.on_goal(grid_position):
       return True
-    #if self.on_dynamic(self.action):
-    #  return True
+    if self.on_dynamic(self.action):
+     return True
     return False
 
   def on_elevator(self, grid_position):
@@ -298,6 +312,9 @@ class GridWorld:
 
     if self.on_pick_up(state_):
       reward += self.kp
+    
+    if self.on_terminate(state_):
+      reward += self.kgback
 
     #if self.on_goal(state_):
     #  reward += self.kg
@@ -317,46 +334,42 @@ class GridWorld:
    # if self.action == 0 and (self.current_flag == 2 or self.current_flag == 0):
    #   reward -= 1
     
-    # if self.current_flag == 0 :
-    #   position_goal = self.pick_up[self.current_pick_up]
-    #   xg, yg = divmod(position_goal, self.row)
+    if self.current_flag == 0 :
+      position_goal = self.pick_up[self.current_pick_up]
+      xg, yg = divmod(position_goal, self.row)
       
-    #   position_agent = self.what_position(state_)
-    #   xa, ya = divmod(position_agent, self.row)
+      position_agent = self.what_position(state_)
+      xa, ya = divmod(position_agent, self.row)
 
-    #   distance = np.abs(xg - xa) + np.abs(yg - ya)
-    #   reward -= distance**2 / (2 * self.row + self.row - 2)**2
+      distance = np.abs(xg - xa) + np.abs(yg - ya)
+      reward -= distance / (2 * (2 * self.row + self.row ))
 
-    # elif self.current_flag == 1:
-    #   position_goal = self.drop_off[self.current_drop_off]
-    #   xg, yg = divmod(position_goal, self.row)
+    elif self.current_flag == 1:
+      position_goal = self.drop_off[self.current_drop_off]
+      xg, yg = divmod(position_goal, self.row)
       
-    #   position_agent = self.what_position(state_)
-    #   xa, ya = divmod(position_agent, self.row)
+      position_agent = self.what_position(state_)
+      xa, ya = divmod(position_agent, self.row)
 
-    #   distance = np.abs(xg - xa) + np.abs(yg - ya)
-    #   reward -= distance**2 / (2 * self.row + self.row - 2)**2
+      distance = np.abs(xg - xa) + np.abs(yg - ya)
+      reward -= distance / (2 * (2 * self.row + self.row ))
     
-    # else:
-    #   position_agent = self.what_position(state_)
-    #   min_dist = 100
+    else:
+      position_agent = self.what_position(state_)
+      min_dist = 100
 
-    #   for pick_up in self.pick_up:
-    #     position_goal = pick_up
-    #     xg, yg = divmod(position_goal, self.row)
-    #     position_agent = self.what_position(state_)
-    #     xa, ya = divmod(position_agent, self.row)
-    #     distance = np.abs(xg - xa) + np.abs(yg - ya)
-    #     if distance < min_dist:
-    #       min_dist = distance
-    #     distance = min_dist
+      for pick_up in self.pick_up:
+        position_goal = pick_up
+        xg, yg = divmod(position_goal, self.row)
+        position_agent = self.what_position(state_)
+        xa, ya = divmod(position_agent, self.row)
+        distance = np.abs(xg - xa) + np.abs(yg - ya)
+        if distance < min_dist:
+          min_dist = distance
+        distance = min_dist
 
-    #   reward -= distance**2 / (2 * self.row + self.row - 2)**2
+      reward -= distance / (2 * (2 * self.row + self.row ))
 
-    
-
-    #if self.action == 1 and self.current_flag == 1:
-    #  reward -= 2
     return reward
   
   def decimal2binary(self, decimal):
@@ -499,10 +512,18 @@ class GridWorld:
   def generate_demand(self, n):
     stack_books = Stack()
     for i in range(n):
-      pick_up = np.random.choice(np.arange(len(self.pick_up)))
-      drop_off = np.random.choice(np.arange(len(self.drop_off)))
-      stack_books.push([drop_off, pick_up])
+      state = np.random.choice(self.ncrr.get_stage(self.stage)[self.progressive])
+      dynamic, flag, drop, pick, gp = self.get_states(state)
+
+      #pick_up = np.random.choice(np.arange(len(self.pick_up)))
+      #drop_off = np.random.choice(np.arange(len(self.drop_off)))
+      stack_books.push([drop, pick])
     return stack_books
+  
+  def filter_move(self, grid_position):
+    if grid_position in np.arange(np.max(self.aux[:,4])):
+      return False
+    return True
 
       
 

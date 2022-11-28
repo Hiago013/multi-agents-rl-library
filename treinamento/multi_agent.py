@@ -62,7 +62,7 @@ class multi_agent():
         for i in range(self.n_agents):
             states = self.env.get_states(self.observations[i])
             self.data[i] = [self.observations[i]] + list(states)
-        #self.zero_flag()  
+        #self.zero_flag()
         self.atualizar_flag_all_agents()
         return self.observations
     
@@ -164,13 +164,14 @@ class multi_agent():
             observation = self.observations[agent]
             self.env.set_state(observation)
             available_actions = self.env.available_action(observation)
+            available_actions = self.cut_actions_dynamic(observation, available_actions)
             action = self.main_agent.choose_best_action(observation, available_actions)
-            print('act', action)
+            #print('act', action)
             observation_, reward, done = self.env.step(action)
 
             self.env.set_state(observation_)
             dynamic, flag, drop, pick, gp = self.env.get_states(observation_)
-            if flag == 2 and gp < self.env.col * self.env.col:
+            if flag == 2: #and gp < self.env.col * self.env.col:
                     if len(self.book) > 0:
                         temporary_state = self.book.pop()
                         self.env.current_flag = 0
@@ -186,12 +187,22 @@ class multi_agent():
             self.reward[agent] = reward
             self.atualizar_flag_all_agents()
             a = [self.env.get_states(i) for i in self.observations]
-            for aaa, item in enumerate(a):
-                print(self.observations[aaa], item)
+            #for aaa, item in enumerate(a):
+            #    print(self.observations[aaa], item)
         return self.observations, [self.env.what_position(a) for a in self.observations], self.reward, self.done
     
     def set_ep(self, min_ep, max_ep, maxEpisode):
         self.main_agent.epfunction(max_ep, min_ep, maxEpisode)
+    
+    def cut_actions_dynamic(self, observation, potential_actions):
+        flag_dynamic = self.env.get_states(observation)[0]
+        binary = self.env.decimal2binary(flag_dynamic)
+
+        for idx, item in enumerate(binary):
+            if int(item) == 1:
+                potential_actions = np.setdiff1d(potential_actions, idx)
+        
+        return potential_actions
     
     def step_agents2(self, episode, maxEpisode):
         actions = np.zeros(self.n_agents, dtype=np.uint8)
@@ -199,16 +210,20 @@ class multi_agent():
             observation = self.observations[agent]
             self.env.set_state(observation)
             available_action = self.env.available_action(observation)
+           # available_action = self.cut_actions_dynamic(observation, available_action)
+            #print(available_action)
             action = self.main_agent.choose_action(observation, episode, maxEpisode, available_action)
             #print(self.main_agent.get_q_table()[observation])
             #print(self.env.get_states(observation))
             actions[agent] = action
             observation_, reward, done = self.env.step(action)
+
+           # if observation_ > 36450:
             self.main_agent.learn(observation, action, reward, observation_, done)
 
             self.env.set_state(observation_)
             dynamic, flag, drop, pick, gp = self.env.get_states(observation_)
-            if flag == 2 and gp < self.env.col * self.env.col:
+            if flag == 2: #and gp < self.env.col * self.env.col:
                     if len(self.book) > 0:
                         temporary_state = self.book.pop()
                         self.env.current_flag = 0
@@ -267,9 +282,10 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
         train_states = dict()
         aux = []
         for gp in env.get_possibles_grid_positions():
-            for pick in range(len(env.pick_up)):
-                for drop in range(8, len(env.drop_off)-1):
-                    aux.append(env.get_observation((0, 1, drop, pick, gp)))
+            for pick in range(len(env.pick_up)):#[0,1,3,4]:
+                for drop in range(8, len(env.drop_off)):
+                    if not (pick == 2 and drop == 14):
+                        aux.append(env.get_observation((0, 1, drop, pick, gp)))
             train_states[env.get_observation((0, 1, 14, 2, gp))] = aux
             aux = []
         print('oi2')
@@ -289,17 +305,18 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
         train_states = dict()
         aux = []
         for gp in env.get_possibles_grid_positions():
-            for pick in range(len(env.pick_up)):
-                for drop in range(0, 8):
-                    aux.append(env.get_observation((0, 1, drop, pick, gp)))
-            train_states[env.get_observation((0, 1, 0, 2, gp))] = aux
+            for pick in range(len(env.pick_up)):#[0,1,3,4]:
+                for drop in np.arange(0, 8):#[0,1,2,4,5,6,7]:
+                    if not (pick == 2 and drop == 3):
+                        aux.append(env.get_observation((0, 1, drop, pick, gp)))
+            train_states[env.get_observation((0, 1, 3, 2, gp))] = aux
             aux = []
         print('oi2')
         #Transferencia do conhecimento do primeiro estagio
         transfer_learning = transfer()
         for key in train_states.keys():
             for state in train_states[key]:
-                agent = transfer_learning.from_to(agent, state = key, state_ = state) 
+                agent = transfer_learning.from_to(agent, state = key, state_ = state, default=.5) 
         agent.save('qtable.txt')
         print('fim')
 
@@ -312,7 +329,7 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
         aux = []
         for gp in env.get_possibles_grid_positions():
             for drop in range(len(env.drop_off)):
-                for pick in range(len(env.pick_up)):
+                for pick in [0,1,3,4]:
                     aux.append(env.get_observation((0, 1, drop, pick, gp)))
                 train_states[env.get_observation((0, 1, drop, 2, gp))] = aux
                 aux = []
@@ -321,7 +338,7 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
         transfer_learning = transfer()
         for key in train_states.keys():
             for state in train_states[key]:
-                agent = transfer_learning.from_to(agent, state = key, state_ = state) 
+                agent = transfer_learning.from_to(agent, state = key, state_ = state, default = .9) 
         agent.save('qtable.txt')
         print('fim')
     
@@ -334,7 +351,7 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
         aux = []
         for gp in env.get_possibles_grid_positions():
             for pick in range(len(env.pick_up)):
-                for drop in range(len(env.drop_off)):
+                for drop in range(len(env.drop_off)-1):
                     aux.append(env.get_observation((0, 0, drop, pick, gp)))
                 train_states[env.get_observation((0, 1, 14, pick, gp))] = aux
                 aux = []
@@ -354,9 +371,10 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
         train_states = dict()
         aux = []
         for gp in env.get_possibles_grid_positions():
-            for pick in range(len(env.pick_up)):
+            for pick in range(len(env.pick_up)):#[0,1,3,4]:
                 for drop in range(len(env.drop_off)):
-                    aux.append(env.get_observation((0, 0, drop, pick, gp)))
+                    if not(pick == 2 and drop == 0):
+                        aux.append(env.get_observation((0, 0, drop, pick, gp)))
             train_states[env.get_observation((0, 0, 0, 2, gp))] = aux
             aux = []
         print('oi2')
@@ -364,9 +382,10 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
         transfer_learning = transfer()
         for key in train_states.keys():
             for state in train_states[key]:
-                agent = transfer_learning.from_to(agent, state = key, state_ = state) 
+                agent = transfer_learning.from_to(agent, state = key, state_ = state, default=.5) 
         agent.save('qtable.txt')
         print('fim')
+        
     if tl == 6:
         agent.load('qtable.txt') 
         print('oi')
@@ -376,7 +395,7 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
         aux = []
         for gp in env.get_possibles_grid_positions():
             for pick in range(len(env.pick_up)):
-                for drop in range(len(env.drop_off)):
+                for drop in range(1, len(env.drop_off)):
                     aux.append(env.get_observation((0, 0, drop, pick, gp)))
                 train_states[env.get_observation((0, 0, 0, pick, gp))] = aux
                 aux = []
@@ -388,6 +407,7 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
                 agent = transfer_learning.from_to(agent, state = key, state_ = state) 
         agent.save('qtable.txt')
         print('fim')
+
     if tl == 7:
         agent.load('qtable.txt') 
         print('oi')
@@ -396,9 +416,10 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
         train_states = dict()
         aux = []
         for gp in env.get_possibles_grid_positions():
-            for pick in range(len(env.pick_up)):
+            for pick in range(len(env.pick_up)):#[0,1,3,4]:
                 for drop in range(len(env.drop_off)):
-                    aux.append(env.get_observation((0, 2, drop, pick, gp)))
+                    if not (pick == 2 and drop == 0):
+                        aux.append(env.get_observation((0, 2, drop, pick, gp)))
             train_states[env.get_observation((0, 0, 0, 2, gp))] = aux
             aux = []
         print('oi2')
@@ -409,7 +430,53 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
                 agent = transfer_learning.from_to(agent, state = key, state_ = state) 
         agent.save('qtable.txt')
         print('fim')
-
+    
+    if tl == 8:
+        agent.load('qtable.txt') 
+        print('oi')
+        # Transferir para chegar até a baia central
+        #Primeiro Estagio
+        train_states = dict()
+        aux = []
+        for gp in env.get_possibles_grid_positions():
+            for pick in range(len(env.pick_up)):#[0,1,3,4]:
+                for drop in range(len(env.drop_off)):
+                    if not (pick == 2 and drop == 0):
+                        aux.append(env.get_observation((0, 2, drop, pick, gp)))
+            train_states[env.get_observation((0, 2, 0, 2, gp))] = aux
+            aux = []
+        print('oi2')
+        #Transferencia do conhecimento do primeiro estagio
+        transfer_learning = transfer()
+        for key in train_states.keys():
+            for state in train_states[key]:
+                agent = transfer_learning.from_to(agent, state = key, state_ = state) 
+        agent.save('qtable.txt')
+        print('fim')
+    
+    if tl == 9:
+        agent.load('qtable.txt') 
+        print('oi')
+        # Transferir para chegar até a baia central
+        #Primeiro Estagio
+        train_states = dict()
+        aux = []
+        for gp in env.get_possibles_grid_positions():
+            for pick in range(len(env.pick_up)):
+                for drop in range(len(env.drop_off)):
+                    for flag in np.arange(3):
+                        for dynamic in np.arange(1, 16):
+                            aux.append(env.get_observation((dynamic, flag, drop, pick, gp)))
+                        train_states[env.get_observation((0, flag, drop, pick, gp))] = aux
+                        aux = []
+        print('oi2')
+        #Transferencia do conhecimento do primeiro estagio
+        transfer_learning = transfer()
+        for key in train_states.keys():
+            for state in train_states[key]:
+                agent = transfer_learning.from_to(agent, state = key, state_ = state) 
+        agent.save('qtable.txt')
+        print('fim')
 
 
 def transfer_learning(env : GridWorld, agent:brain, tl = 1):
