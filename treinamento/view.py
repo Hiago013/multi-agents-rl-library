@@ -30,7 +30,7 @@ env.load_available_action2()
 env.load_available_flag_dynamic2()
 agent = brain(.1, .99, .1, len(env.action_space()), len(env.state_space()))
 agent.filter_q_table(env.state_action)
-agent.load('qtable.txt')
+agent.load('qtable (outra cópia).txt')
 env.set_stage(3)
 env.set_progressive_curriculum(0)
 obstacle = env.obstacles
@@ -50,7 +50,10 @@ color_agents = [(np.random.randint(0, 255), np.random.randint(0, 255), np.random
 agent_position = [1, 2]
 
 ##print(agent.get_q_table()[0])
-#print(env.get_states(1709))
+for i in range(1, 16):
+    print(env.get_states(36450*i))
+
+print(env.get_states(36450*16 - 1))
 
 # print(env.get_observation((0, 1, 14, 2, 136)))
 # print(env.get_observation((0, 1, 3, 2, 21)))
@@ -58,7 +61,7 @@ agent_position = [1, 2]
 
 print(env.get_observation((0, 1, 0, 2, 21)))
 print(env.get_observation((1, 0, 3, 2, 15)))
-print(env.get_observation((0, 0, 3, 2, 15)))
+print(env.get_observation((2, 0, 0, 0, 0)))
 
 # print(agent.get_q_table()[23950])
 # print(agent.get_q_table()[14925])

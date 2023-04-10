@@ -82,7 +82,9 @@ env.load_available_action2()
 env.load_available_flag_dynamic2()
 
 agent = brain(.1, .99, .2, len(env.action_space()), len(env.state_space()))
-agent.load('qtable.txt')
+#agent.load('qtable.txt')
+#agent.colision_actions()
+#agent.save('teste.txt')
 
 n_agents = 1
 ma = multi_agent(agent, env, n_agents)
@@ -94,7 +96,11 @@ control_trainning = {0: {'epoch': [50, 100, 150, 200, 250, 300],
                         'n_books': 0,
                         'max_ep': lambda x: x}}
 
-for all_estagios in range(42, 44):
+print('cheguei')
+#while True:
+#    pass
+
+for all_estagios in range(6, 44):
     print('\n', all_estagios)
     env.set_stage(1)
     if all_estagios < 6:
@@ -266,8 +272,8 @@ for all_estagios in range(42, 44):
         ma.set_ep(.1, 1 - (all_estagios % 6) / 10, max_ep) #np.log10(10-all_estagios)
     
     elif all_estagios == 42:
-        #transfer_learning_kevin(env, agent, 8)
-        #transfer_learning_kevin(env, agent, 9)
+        transfer_learning_kevin(env, agent, 8)
+        transfer_learning_kevin(env, agent, 9)
         #ma.load('qtable')
         env.set_stage(3)
         n_epoch = control_trainning[0]['retrain'][all_estagios % 6]

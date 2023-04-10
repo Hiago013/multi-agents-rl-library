@@ -274,6 +274,7 @@ class multi_agent():
 
 
 def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
+    k = v = 0
     if tl == 1:
         agent.load('qtable.txt') 
         print('oi')
@@ -286,15 +287,18 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
                 for drop in range(8, len(env.drop_off)):
                     if not (pick == 2 and drop == 14):
                         aux.append(env.get_observation((0, 1, drop, pick, gp)))
+                        v += 1
+            k += 1
             train_states[env.get_observation((0, 1, 14, 2, gp))] = aux
             aux = []
         print('oi2')
+        print(k, v)
         #Transferencia do conhecimento do primeiro estagio
         transfer_learning = transfer()
         for key in train_states.keys():
             for state in train_states[key]:
                 agent = transfer_learning.from_to(agent, state = key, state_ = state) 
-        agent.save('qtable.txt')
+        #agent.save('qtable.txt')
         print('fim')
 
     if tl == 2:
@@ -309,15 +313,17 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
                 for drop in np.arange(0, 8):#[0,1,2,4,5,6,7]:
                     if not (pick == 2 and drop == 3):
                         aux.append(env.get_observation((0, 1, drop, pick, gp)))
+            k += 1
+            v += len(aux)
             train_states[env.get_observation((0, 1, 3, 2, gp))] = aux
             aux = []
-        print('oi2')
+        print('oi2', k, v)
         #Transferencia do conhecimento do primeiro estagio
         transfer_learning = transfer()
         for key in train_states.keys():
             for state in train_states[key]:
                 agent = transfer_learning.from_to(agent, state = key, state_ = state, default=.5) 
-        agent.save('qtable.txt')
+        #agent.save('qtable.txt')
         print('fim')
 
     if tl == 3:
@@ -331,15 +337,17 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
             for drop in range(len(env.drop_off)):
                 for pick in [0,1,3,4]:
                     aux.append(env.get_observation((0, 1, drop, pick, gp)))
+                k += 1
+                v += len(aux)
                 train_states[env.get_observation((0, 1, drop, 2, gp))] = aux
                 aux = []
-        print('oi2')
+        print('oi2', k, v)
         #Transferencia do conhecimento do primeiro estagio
         transfer_learning = transfer()
         for key in train_states.keys():
             for state in train_states[key]:
                 agent = transfer_learning.from_to(agent, state = key, state_ = state, default = .9) 
-        agent.save('qtable.txt')
+        #agent.save('qtable.txt')
         print('fim')
     
     if tl == 4:
@@ -353,15 +361,17 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
             for pick in range(len(env.pick_up)):
                 for drop in range(len(env.drop_off)-1):
                     aux.append(env.get_observation((0, 0, drop, pick, gp)))
+                k += 1
+                v += len(aux)
                 train_states[env.get_observation((0, 1, 14, pick, gp))] = aux
                 aux = []
-        print('oi2')
+        print('oi2', k, v)
         #Transferencia do conhecimento do primeiro estagio
         transfer_learning = transfer()
         for key in train_states.keys():
             for state in train_states[key]:
                 agent = transfer_learning.from_to_reverse(agent, state = key, state_ = state) 
-        agent.save('qtable.txt')
+        #agent.save('qtable.txt')
         print('fim')
     if tl == 5:
         agent.load('qtable.txt') 
@@ -375,15 +385,17 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
                 for drop in range(len(env.drop_off)):
                     if not(pick == 2 and drop == 0):
                         aux.append(env.get_observation((0, 0, drop, pick, gp)))
+            k += 1
+            v += len(aux)
             train_states[env.get_observation((0, 0, 0, 2, gp))] = aux
             aux = []
-        print('oi2')
+        print('oi2', k, v)
         #Transferencia do conhecimento do primeiro estagio
         transfer_learning = transfer()
         for key in train_states.keys():
             for state in train_states[key]:
                 agent = transfer_learning.from_to(agent, state = key, state_ = state, default=.5) 
-        agent.save('qtable.txt')
+        #agent.save('qtable.txt')
         print('fim')
         
     if tl == 6:
@@ -397,15 +409,17 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
             for pick in range(len(env.pick_up)):
                 for drop in range(1, len(env.drop_off)):
                     aux.append(env.get_observation((0, 0, drop, pick, gp)))
+                k += 1
+                v += len(aux)
                 train_states[env.get_observation((0, 0, 0, pick, gp))] = aux
                 aux = []
-        print('oi2')
+        print('oi2', k, v)
         #Transferencia do conhecimento do primeiro estagio
         transfer_learning = transfer()
         for key in train_states.keys():
             for state in train_states[key]:
                 agent = transfer_learning.from_to(agent, state = key, state_ = state) 
-        agent.save('qtable.txt')
+        #agent.save('qtable.txt')
         print('fim')
 
     if tl == 7:
@@ -420,15 +434,17 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
                 for drop in range(len(env.drop_off)):
                     if not (pick == 2 and drop == 0):
                         aux.append(env.get_observation((0, 2, drop, pick, gp)))
+            k += 1
+            v += len(aux)
             train_states[env.get_observation((0, 0, 0, 2, gp))] = aux
             aux = []
-        print('oi2')
+        print('oi2', k ,v)
         #Transferencia do conhecimento do primeiro estagio
         transfer_learning = transfer()
         for key in train_states.keys():
             for state in train_states[key]:
                 agent = transfer_learning.from_to(agent, state = key, state_ = state) 
-        agent.save('qtable.txt')
+        #agent.save('qtable.txt')
         print('fim')
     
     if tl == 8:
@@ -443,15 +459,17 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
                 for drop in range(len(env.drop_off)):
                     if not (pick == 2 and drop == 0):
                         aux.append(env.get_observation((0, 2, drop, pick, gp)))
+            k += 1
+            v += len(aux)
             train_states[env.get_observation((0, 2, 0, 2, gp))] = aux
             aux = []
-        print('oi2')
+        print('oi2', k ,v)
         #Transferencia do conhecimento do primeiro estagio
         transfer_learning = transfer()
         for key in train_states.keys():
             for state in train_states[key]:
                 agent = transfer_learning.from_to(agent, state = key, state_ = state) 
-        agent.save('qtable.txt')
+        #agent.save('qtable.txt')
         print('fim')
     
     if tl == 9:
@@ -467,15 +485,17 @@ def transfer_learning_kevin(env : GridWorld, agent:brain, tl = 1):
                     for flag in np.arange(3):
                         for dynamic in np.arange(1, 16):
                             aux.append(env.get_observation((dynamic, flag, drop, pick, gp)))
+                        k += 1
+                        v += len(aux)
                         train_states[env.get_observation((0, flag, drop, pick, gp))] = aux
                         aux = []
-        print('oi2')
+        print('oi2', k ,v)
         #Transferencia do conhecimento do primeiro estagio
         transfer_learning = transfer()
         for key in train_states.keys():
             for state in train_states[key]:
                 agent = transfer_learning.from_to(agent, state = key, state_ = state) 
-        agent.save('qtable.txt')
+        #agent.save('qtable.txt')
         print('fim')
 
 

@@ -81,9 +81,9 @@ if __name__ == '__main__':
 
     crr = new_curriculum(env.all_states, env.obstacles, env.elevator, 9, 9, env.pick_up, env.drop_off)
 
-    
+    #print((crr.stages[0]))
     #print((crr.stage[1][12]))
-    for item in crr.stages[1]:
+    for item in crr.stages[0]:
        print(env.get_states(item))
        print('')
     #    for state in crr.stage[1][key]:

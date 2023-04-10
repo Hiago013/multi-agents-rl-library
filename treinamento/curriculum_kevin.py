@@ -295,10 +295,16 @@ if __name__ == '__main__':
     #print((crr.stage[1][12]))
     #a = np.array(list(map(env.get_states, crr.stage[3][0])))
     #print((a[:,4]))
+    soma = 0
+    kt = 1
+    for i in range(6 * kt, 6 * kt + 6):
+        soma += len(crr.stage[2][i])
+        print(soma)
+    print(soma)
 
-    for item in crr.stage[3][0]:
-        print(env.get_states(item))
-        print('')
+    #for item in crr.stage[3][0]:
+    #    print(env.get_states(item))
+    #    print('')
     #    for state in crr.stage[1][key]:
     #        print(env.get_states(state))
     #    break
